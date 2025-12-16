@@ -21,8 +21,11 @@
     <div class="container mx-auto px-6 py-8">
         <div class="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
             <h3 class="text-2xl font-bold text-wakatake mb-6">修改書籍資料</h3>
-            <form onsubmit="updateBook(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="col-span-1"><label class="block font-bold">ISBN (不可修改)</label><input name="ISBN" id="isbnField" readonly class="w-full border p-2 bg-gray-200"></div>
+            
+            <div id="loadingMsg" class="text-center text-gray-500 my-4">正在載入資料...</div>
+            
+            <form id="editForm" onsubmit="updateBook(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                <div class="col-span-1"><label class="block font-bold">ISBN (不可修改)</label><input name="ISBN" id="isbnField" readonly class="w-full border p-2 bg-gray-200 cursor-not-allowed"></div>
                 <div class="col-span-1"><label class="block font-bold">書名</label><input name="Title" id="titleField" required class="w-full border p-2"></div>
                 <div class="col-span-1"><label class="block font-bold">作者</label><input name="Author" id="authorField" class="w-full border p-2"></div>
                 <div class="col-span-1"><label class="block font-bold">出版社</label><input name="Publisher" id="pubField" class="w-full border p-2"></div>
@@ -31,7 +34,12 @@
                     <select name="Category" id="catField" class="w-full border p-2"></select>
                 </div>
                 
-                <div class="col-span-1"><label class="block font-bold">總數量</label><input name="TotalCopies" id="totalField" type="number" class="w-full border p-2"></div>
+                <div class="col-span-1">
+                    <label class="block font-bold">總館藏數量</label>
+                    <input name="TotalCopies" id="totalField" type="number" min="1" class="w-full border p-2">
+                    <p class="text-xs text-gray-500 mt-1" id="borrowInfo">目前已借出: 讀取中...</p>
+                </div>
+                
                 <div class="col-span-2"><label class="block font-bold">封面網址</label><input name="CoverUrl" id="coverField" class="w-full border p-2"></div>
                 <div class="col-span-2"><label class="block font-bold">簡介</label><textarea name="Description" id="descField" rows="3" class="w-full border p-2"></textarea></div>
 
@@ -45,47 +53,82 @@
         const isbn = urlParams.get('isbn');
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // 1. 載入分類
+            // 載入分類
             const catSelect = document.getElementById('catField');
-            CONFIG.CATEGORIES.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = c;
-                catSelect.appendChild(opt);
-            });
+            if(typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
+                CONFIG.CATEGORIES.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    catSelect.appendChild(opt);
+                });
+            }
 
-            // 2. 載入書籍資料
             if(isbn) {
-                try {
-                    const res = await fetch(`${CONFIG.API_URL}/books/${isbn}`);
-                    const book = await res.json();
-                    document.getElementById('isbnField').value = book.ISBN;
-                    document.getElementById('titleField').value = book.Title;
-                    document.getElementById('authorField').value = book.Author;
-                    document.getElementById('pubField').value = book.Publisher;
-                    document.getElementById('catField').value = book.Category;
-                    document.getElementById('totalField').value = book.TotalCopies;
-                    document.getElementById('coverField').value = book.CoverUrl;
-                    document.getElementById('descField').value = book.Description;
-                } catch(e) { alert('載入失敗'); }
+                await loadBookData(isbn);
+            } else {
+                alert('無效的 ISBN');
+                window.location.href = 'index.html';
             }
         });
+
+        async function loadBookData(isbn) {
+            try {
+                console.log(`正在讀取書籍: ${CONFIG.API_URL}/books/${isbn}`);
+                
+                const res = await fetch(`${CONFIG.API_URL}/books/${isbn}`);
+                
+                if (!res.ok) throw new Error('API 回應錯誤');
+                
+                const book = await res.json();
+                console.log('取得資料:', book); // Debug 用
+
+                // 填入表單
+                document.getElementById('isbnField').value = book.ISBN || '';
+                document.getElementById('titleField').value = book.Title || '';
+                document.getElementById('authorField').value = book.Author || '';
+                document.getElementById('pubField').value = book.Publisher || '';
+                document.getElementById('catField').value = book.Category || '其他';
+                document.getElementById('totalField').value = book.TotalCopies;
+                document.getElementById('coverField').value = book.CoverUrl || '';
+                document.getElementById('descField').value = book.Description || '';
+                
+                // 計算並顯示借閱資訊 (給管理員參考用)
+                const borrowed = (book.TotalCopies || 0) - (book.AvailableCopies || 0);
+                document.getElementById('borrowInfo').textContent = `目前已借出: ${borrowed} 本 (修改後的總數不可低於此值)`;
+                document.getElementById('totalField').min = borrowed; // 設定 HTML 最小值限制
+
+                // 顯示表單
+                document.getElementById('loadingMsg').classList.add('hidden');
+                document.getElementById('editForm').classList.remove('hidden');
+
+            } catch(e) { 
+                console.error(e);
+                document.getElementById('loadingMsg').textContent = '讀取失敗，請確認 API Gateway 設定 (GET /books/{isbn})';
+                document.getElementById('loadingMsg').classList.add('text-red-500');
+            }
+        }
 
         async function updateBook(e) {
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target).entries());
+            
+            if(!confirm('確定要儲存修改嗎？')) return;
+
             try {
                 const res = await fetch(`${CONFIG.API_URL}/admin/books/${isbn}`, {
                     method: 'PUT',
                     body: JSON.stringify(data)
                 });
+                
+                const result = await res.json();
                 if(res.ok) {
-                    alert('修改成功');
+                    alert('修改成功！');
                     window.location.href = 'index.html';
                 } else {
-                    alert('修改失敗');
+                    alert('修改失敗: ' + result.message);
                 }
-            } catch(e) { alert('錯誤'); }
+            } catch(e) { alert('系統錯誤'); console.error(e); }
         }
     </script>
 </body>
