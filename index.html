@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雲端圖書館 - 首頁</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68' } } }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-700 font-sans min-h-screen flex flex-col">
+
+    <nav class="bg-wakatake shadow-lg text-white sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold tracking-wider"><i class="fas fa-book-open"></i> 雲端圖書館</a>
+            
+            <div id="navAuthSection">
+                </div>
+        </div>
+    </nav>
+
+    <header class="bg-white shadow-sm py-10">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-4xl font-bold text-wakatake mb-2">探索知識的海洋</h1>
+            
+            <div class="max-w-3xl mx-auto flex gap-2 p-2 bg-gray-100 rounded-lg mt-8">
+                <select id="category" class="bg-transparent border-r border-gray-300 px-4 py-2 outline-none">
+                    <option value="All">全部分類</option>
+                    <option value="電腦科學">電腦科學</option>
+                    <option value="文學小說">文學小說</option>
+                    <option value="商業理財">商業理財</option>
+                </select>
+                <input type="text" id="keyword" placeholder="輸入書名、作者或 ISBN..." class="flex-1 bg-transparent px-4 py-2 outline-none">
+                <button onclick="searchBooks()" class="bg-wakatake text-white px-8 py-2 rounded shadow hover:bg-wakatake_dark transition">搜尋</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10 flex-grow">
+        <div id="loading" class="hidden text-center text-wakatake text-2xl py-10"><i class="fas fa-spinner fa-spin"></i> 資料載入中...</div>
+        <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </main>
+
+    <div id="authModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            <div class="flex border-b">
+                <button onclick="switchTab('login')" id="tabLogin" class="flex-1 py-4 font-bold text-wakatake border-b-2 border-wakatake bg-gray-50">登入</button>
+                <button onclick="switchTab('register')" id="tabRegister" class="flex-1 py-4 font-bold text-gray-400 hover:bg-gray-50">註冊</button>
+            </div>
+            <div class="p-8">
+                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                    <input name="UserID" placeholder="帳號" required class="w-full border p-3 rounded-lg outline-none">
+                    <input name="Password" type="password" placeholder="密碼" required class="w-full border p-3 rounded-lg outline-none">
+                    <button type="submit" class="w-full bg-wakatake text-white py-3 rounded-lg font-bold hover:bg-wakatake_dark">登入</button>
+                </form>
+                <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                    <input name="UserID" placeholder="設定帳號" required class="w-full border p-3 rounded-lg outline-none">
+                    <input name="Name" placeholder="姓名" required class="w-full border p-3 rounded-lg outline-none">
+                    <input name="Password" type="password" placeholder="密碼" required class="w-full border p-3 rounded-lg outline-none">
+                    <button type="submit" class="w-full bg-blue-500 text-white py-3 rounded-lg font-bold hover:bg-blue-600">註冊</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('libraryUser')) || null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNavUI();
+            searchBooks();
+        });
+
+        function updateNavUI() {
+            const nav = document.getElementById('navAuthSection');
+            if (currentUser) {
+                // 判斷是否為管理員 (注意: 這裡檢查 Role)
+                const isAdmin = (currentUser.Role === 'Admin' || currentUser.Role === 'admin');
+                
+                let adminBtn = '';
+                if(isAdmin) {
+                    // 管理員專屬：新增書籍按鈕 (導向 admin.html)
+                    adminBtn = `<a href="admin.html" class="bg-yellow-500 text-white px-4 py-2 rounded-full font-bold shadow hover:bg-yellow-600 mr-2"><i class="fas fa-plus"></i> 新增書籍</a>`;
+                }
+
+                nav.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-medium">Hi, ${currentUser.Name} (${isAdmin ? '管理員' : '會員'})</span>
+                        ${adminBtn}
+                        <button onclick="logout()" class="bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-800">登出</button>
+                    </div>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <button onclick="openModal('login')" class="bg-white text-wakatake px-5 py-2 rounded-full font-bold shadow hover:bg-gray-100">
+                        <i class="fas fa-user"></i> 登入 / 註冊
+                    </button>
+                `;
+            }
+        }
+
+        async function searchBooks() {
+            const cat = document.getElementById('category').value;
+            const kw = document.getElementById('keyword').value;
+            const resultDiv = document.getElementById('results');
+            document.getElementById('loading').classList.remove('hidden');
+            resultDiv.innerHTML = '';
+
+            try {
+                let url = `${CONFIG.API_URL}/books?category=${cat}`;
+                if(kw) url += `&q=${encodeURIComponent(kw)}`;
+                const res = await fetch(url);
+                const books = await res.json();
+                document.getElementById('loading').classList.add('hidden');
+
+                if (books.length === 0) {
+                    resultDiv.innerHTML = '<p class="text-center col-span-full text-gray-500">查無資料</p>';
+                    return;
+                }
+
+                // 檢查權限
+                const isAdmin = currentUser && (currentUser.Role === 'Admin' || currentUser.Role === 'admin');
+
+                books.forEach(book => {
+                    let actionBtn = '';
+
+                    // === 邏輯分歧：管理員 vs 一般使用者 ===
+                    if (isAdmin) {
+                        // 管理員看到：刪除按鈕
+                        actionBtn = `
+                            <div class="flex space-x-2">
+                                <button onclick="deleteBook('${book.ISBN}')" class="flex-1 py-2 rounded font-bold bg-red-500 text-white hover:bg-red-600 transition">刪除</button>
+                                <button onclick="alert('編輯功能開發中...')" class="flex-1 py-2 rounded font-bold bg-gray-500 text-white hover:bg-gray-600 transition">修改</button>
+                            </div>
+                        `;
+                    } else {
+                        // 使用者看到：借閱按鈕 (邏輯保持不變)
+                        const hasStock = book.AvailableCopies > 0;
+                        const isBorrowed = currentUser && currentUser.BorrowedBooks && currentUser.BorrowedBooks.includes(book.ISBN);
+
+                        if (!currentUser) {
+                            actionBtn = `<button onclick="openModal('login')" class="w-full py-2 rounded font-bold bg-gray-600 text-white hover:bg-gray-700">登入後借閱</button>`;
+                        } else if (isBorrowed) {
+                            actionBtn = `<button disabled class="w-full py-2 rounded font-bold bg-gray-300 text-gray-500 cursor-not-allowed">已借閱</button>`;
+                        } else if (hasStock) {
+                            actionBtn = `<button onclick="borrowBook('${book.ISBN}')" class="w-full py-2 rounded font-bold bg-wakatake text-white hover:bg-wakatake_dark transition">立即借閱</button>`;
+                        } else {
+                            actionBtn = `<button disabled class="w-full py-2 rounded font-bold bg-gray-300 text-gray-500 cursor-not-allowed">暫無庫存</button>`;
+                        }
+                    }
+
+                    const card = `
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition border border-gray-100 flex flex-col h-full">
+                            <div class="h-48 bg-gray-200 relative">
+                                <img src="${book.CoverUrl || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover">
+                                <span class="absolute top-2 right-2 bg-white bg-opacity-90 px-2 py-1 text-xs rounded font-bold shadow">剩餘: ${book.AvailableCopies}</span>
+                            </div>
+                            <div class="p-5 flex-1 flex flex-col">
+                                <h3 class="font-bold text-lg mb-1 truncate">${book.Title}</h3>
+                                <p class="text-sm text-gray-500 mb-4">${book.Author}</p>
+                                <div class="mt-auto">${actionBtn}</div>
+                            </div>
+                        </div>
+                    `;
+                    resultDiv.innerHTML += card;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        // --- 登入與註冊 ---
+        function openModal(type) { document.getElementById('authModal').classList.remove('hidden'); switchTab(type); }
+        function closeModal() { document.getElementById('authModal').classList.add('hidden'); }
+        function switchTab(type) {
+            if (type === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('tabLogin').classList.add('text-wakatake', 'border-wakatake');
+                document.getElementById('tabRegister').classList.remove('text-blue-500', 'border-blue-500');
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('tabLogin').classList.remove('text-wakatake', 'border-wakatake');
+                document.getElementById('tabRegister').classList.add('text-blue-500', 'border-blue-500');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/login`, { method: 'POST', body: JSON.stringify(data) });
+                const result = await res.json();
+                if (res.ok) {
+                    // 儲存使用者資訊
+                    currentUser = { 
+                        UserID: result.UserID, Name: result.Name, Role: result.Role, 
+                        BorrowedBooks: result.BorrowedBooks || [] 
+                    };
+                    localStorage.setItem('libraryUser', JSON.stringify(currentUser));
+                    
+                    // 根據要求：管理員登入後也是回到首頁，不跳轉
+                    closeModal();
+                    updateNavUI(); // 更新導覽列 (出現新增按鈕)
+                    searchBooks(); // 更新列表 (出現刪除按鈕)
+                    alert(`歡迎回來，${currentUser.Name}`);
+                } else { alert('登入失敗: ' + result.message); }
+            } catch(err) { console.error(err); alert('系統錯誤'); }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/register`, { method: 'POST', body: JSON.stringify(data) });
+                if (res.ok) { alert('註冊成功，請登入'); switchTab('login'); e.target.reset(); }
+                else { alert('註冊失敗'); }
+            } catch(err) { alert('錯誤'); }
+        }
+
+        function logout() {
+            localStorage.removeItem('libraryUser');
+            currentUser = null;
+            location.reload();
+        }
+
+        // --- 功能操作 ---
+        async function borrowBook(isbn) {
+            if(!confirm('確定借閱？')) return;
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/books/${isbn}/borrow`, {
+                    method: 'POST',
+                    body: JSON.stringify({ UserID: currentUser.UserID })
+                });
+                if(res.ok) {
+                    alert('借閱成功！');
+                    if(!currentUser.BorrowedBooks) currentUser.BorrowedBooks = [];
+                    currentUser.BorrowedBooks.push(isbn);
+                    localStorage.setItem('libraryUser', JSON.stringify(currentUser));
+                    searchBooks();
+                } else {
+                    const err = await res.json();
+                    alert('失敗: ' + err.message);
+                }
+            } catch(e) { alert('錯誤'); }
+        }
+
+        // 管理員刪除書籍
+        async function deleteBook(isbn) {
+            if(!confirm('確定要永久刪除這本書嗎？')) return;
+            try {
+                // 注意：這裡假設刪除 API 路徑為 /admin/books/{isbn}
+                const res = await fetch(`${CONFIG.API_URL}/admin/books/${isbn}`, {
+                    method: 'DELETE'
+                });
+                if(res.ok) {
+                    alert('刪除成功');
+                    searchBooks();
+                } else {
+                    alert('刪除失敗');
+                }
+            } catch(e) { alert('系統錯誤'); }
+        }
+    </script>
+</body>
+</html>

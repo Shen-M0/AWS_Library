@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增書籍</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68' } } } }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+    <nav class="bg-gray-800 text-white px-6 py-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <span class="font-bold text-xl">新增書籍後台</span>
+            <a href="index.html" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded transition">
+                <i class="fas fa-arrow-left"></i> 返回圖書首頁
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8 flex justify-center">
+        <div class="bg-white rounded-lg shadow-md p-8 w-full max-w-3xl">
+            <h3 class="text-2xl font-bold text-wakatake mb-6 border-b pb-2">填寫書籍資料</h3>
+            
+            <form onsubmit="addBook(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-1"><label class="block font-bold mb-1">ISBN *</label><input name="ISBN" required class="w-full border p-2 rounded"></div>
+                <div class="col-span-1"><label class="block font-bold mb-1">書名 *</label><input name="Title" required class="w-full border p-2 rounded"></div>
+                <div class="col-span-1"><label class="block font-bold mb-1">作者</label><input name="Author" class="w-full border p-2 rounded"></div>
+                <div class="col-span-1"><label class="block font-bold mb-1">出版社</label><input name="Publisher" class="w-full border p-2 rounded"></div>
+                <div class="col-span-1"><label class="block font-bold mb-1">分類</label>
+                    <select name="Category" class="w-full border p-2 rounded">
+                        <option>電腦科學</option><option>文學小說</option><option>商業理財</option>
+                    </select>
+                </div>
+                <div class="col-span-1"><label class="block font-bold mb-1">數量</label><input name="TotalCopies" type="number" value="1" class="w-full border p-2 rounded"></div>
+                <div class="col-span-2"><label class="block font-bold mb-1">封面圖片</label><input name="CoverUrl" class="w-full border p-2 rounded"></div>
+                <div class="col-span-2"><label class="block font-bold mb-1">簡介</label><textarea name="Description" rows="3" class="w-full border p-2 rounded"></textarea></div>
+
+                <button type="submit" class="col-span-2 bg-wakatake text-white py-3 rounded-lg font-bold hover:bg-wakatake_dark text-lg shadow">確認新增入庫</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 安全檢查：只有管理員能進來
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('libraryUser'));
+            if (!user || (user.Role !== 'Admin' && user.Role !== 'admin')) {
+                alert('權限不足');
+                window.location.href = 'index.html';
+            }
+        });
+
+        async function addBook(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/admin/books`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if(res.ok) {
+                    if(confirm('新增成功！是否留在本頁繼續新增？')) {
+                        e.target.reset();
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                } else {
+                    alert('新增失敗: ' + result.message);
+                }
+            } catch(e) { alert('系統錯誤'); }
+        }
+    </script>
+</body>
+</html>
