@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編輯書籍</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81' } } } }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+    <nav class="bg-gray-800 text-white px-6 py-4">
+        <div class="container mx-auto flex justify-between">
+            <span class="font-bold text-xl">編輯書籍</span>
+            <a href="index.html" class="bg-gray-600 px-4 py-2 rounded">返回首頁</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
+            <h3 class="text-2xl font-bold text-wakatake mb-6">修改書籍資料</h3>
+            <form onsubmit="updateBook(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-1"><label class="block font-bold">ISBN (不可修改)</label><input name="ISBN" id="isbnField" readonly class="w-full border p-2 bg-gray-200"></div>
+                <div class="col-span-1"><label class="block font-bold">書名</label><input name="Title" id="titleField" required class="w-full border p-2"></div>
+                <div class="col-span-1"><label class="block font-bold">作者</label><input name="Author" id="authorField" class="w-full border p-2"></div>
+                <div class="col-span-1"><label class="block font-bold">出版社</label><input name="Publisher" id="pubField" class="w-full border p-2"></div>
+                
+                <div class="col-span-1"><label class="block font-bold">分類</label>
+                    <select name="Category" id="catField" class="w-full border p-2"></select>
+                </div>
+                
+                <div class="col-span-1"><label class="block font-bold">總數量</label><input name="TotalCopies" id="totalField" type="number" class="w-full border p-2"></div>
+                <div class="col-span-2"><label class="block font-bold">封面網址</label><input name="CoverUrl" id="coverField" class="w-full border p-2"></div>
+                <div class="col-span-2"><label class="block font-bold">簡介</label><textarea name="Description" id="descField" rows="3" class="w-full border p-2"></textarea></div>
+
+                <button type="submit" class="col-span-2 bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700">儲存修改</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const isbn = urlParams.get('isbn');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. 載入分類
+            const catSelect = document.getElementById('catField');
+            CONFIG.CATEGORIES.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                catSelect.appendChild(opt);
+            });
+
+            // 2. 載入書籍資料
+            if(isbn) {
+                try {
+                    const res = await fetch(`${CONFIG.API_URL}/books/${isbn}`);
+                    const book = await res.json();
+                    document.getElementById('isbnField').value = book.ISBN;
+                    document.getElementById('titleField').value = book.Title;
+                    document.getElementById('authorField').value = book.Author;
+                    document.getElementById('pubField').value = book.Publisher;
+                    document.getElementById('catField').value = book.Category;
+                    document.getElementById('totalField').value = book.TotalCopies;
+                    document.getElementById('coverField').value = book.CoverUrl;
+                    document.getElementById('descField').value = book.Description;
+                } catch(e) { alert('載入失敗'); }
+            }
+        });
+
+        async function updateBook(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/admin/books/${isbn}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+                if(res.ok) {
+                    alert('修改成功');
+                    window.location.href = 'index.html';
+                } else {
+                    alert('修改失敗');
+                }
+            } catch(e) { alert('錯誤'); }
+        }
+    </script>
+</body>
+</html>
