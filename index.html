@@ -125,12 +125,21 @@
                 }
 
                 div.innerHTML += `
-                    <div class="bg-white rounded shadow p-4 flex flex-col">
-                        <img src="${book.CoverUrl}" class="h-48 object-cover rounded mb-2 bg-gray-200">
-                        <h3 class="font-bold text-lg truncate">${book.Title}</h3>
+                    <div class="bg-white rounded shadow p-4 flex flex-col h-full">
+                        <div class="aspect-[3/4] w-full mb-3 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
+                            <img src="${book.CoverUrl}" 
+                                class="max-w-full max-h-full object-contain shadow-sm"
+                                alt="${book.Title}">
+                        </div>
+            
+                        <h3 class="font-bold text-lg truncate mb-1" title="${book.Title}">${book.Title}</h3>
                         <p class="text-sm text-gray-500 mb-2">${book.Author}</p>
-                        <div class="mt-auto">
-                            <span class="text-xs bg-gray-100 px-2 py-1 rounded">庫存: ${book.AvailableCopies}</span>
+            
+                        <div class="mt-auto pt-2 border-t border-gray-100">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">庫存: ${book.AvailableCopies}</span>
+                                <span class="text-xs text-gray-400">${book.Category}</span>
+                            </div>
                             ${btns}
                         </div>
                     </div>`;
