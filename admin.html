@@ -34,8 +34,8 @@
 
                 <div class="col-span-1">
                     <label class="block font-bold mb-1">分類</label>
-                    <select name="Category" id="categoryField" class="w-full border p-2 rounded focus:ring-2 focus:ring-wakatake outline-none">
-                    </select>
+                    <select name="Category" id="bookCategoryInput" class="w-full border p-2 rounded focus:ring-2 focus:ring-wakatake outline-none">
+                        </select>
                 </div>
 
                 <div class="col-span-1"><label class="block font-bold mb-1">數量</label><input name="TotalCopies" type="number" value="1" class="w-full border p-2 rounded"></div>
@@ -57,23 +57,26 @@
                 return;
             }
 
-            // 2. 載入分類
-            const sel = document.getElementById('categoryField');
+            // 2. 載入分類 (使用新的 ID)
+            const sel = document.getElementById('bookCategoryInput');
             
             if (sel && typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
-                // 清空選項 (雖然 HTML 已經清空了，但保持這行是好習慣)
+                // 清空目前的選項 (確保沒有殘留)
                 sel.innerHTML = ''; 
                 
-                // [修改重點] 移除原本的「-- 請選擇分類 --」預設選項程式碼
-                // 直接載入分類，這樣預設就會選中第一個分類，行為與 edit_book.html 一致
+                // 直接載入分類，不加任何預設選項，行為與 edit_book.html 一致
                 CONFIG.CATEGORIES.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c;
                     opt.textContent = c;
                     sel.appendChild(opt);
                 });
+                
+                // Debug 用：確認載入成功
+                console.log('分類載入完成:', CONFIG.CATEGORIES);
             } else {
-                console.error("錯誤：找不到 #categoryField 元素，或 CONFIG 未載入");
+                console.error("錯誤：找不到 #bookCategoryInput 元素，或 CONFIG 未載入");
+                if(sel) sel.innerHTML = '<option value="其他">載入失敗(預設其他)</option>';
             }
         });
 
@@ -89,8 +92,7 @@
                 if(res.ok) {
                     if(confirm('新增成功！是否留在本頁繼續新增？')) {
                         e.target.reset();
-                        // 雖然 reset 會重置表單，但因為我們沒有預設 placeholder，
-                        // 分類選單會自動停留在第一個選項，無需額外設定 selectedIndex
+                        // 因為沒有 placeholder，重置後會自動選取第一個分類，無需額外操作
                     } else {
                         window.location.href = 'index.html';
                     }
