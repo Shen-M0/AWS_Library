@@ -8,51 +8,43 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script>tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68' } } } }</script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68', chitose: '#316745', sumi: '#303133', rikyu: '#888E7E', gofun: '#fffffc' } } } }
+    </script>
     <style>
         body {
             background-color: #f7f6f2;
-            background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-            color: #4b4b4b;
+            background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+            color: #303133;
         }
     </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col">
 
-    <nav class="bg-[#eae8e1]/90 backdrop-blur shadow-sm sticky top-0 z-50 border-b border-stone-200">
+    <nav class="bg-chitose shadow-lg sticky top-0 z-50 border-b border-white/10">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-bold tracking-wider flex items-center gap-2 text-wakatake">
+            <a href="index.html" class="text-2xl font-bold tracking-wider text-white flex items-center gap-2 hover:text-white/80 transition shadow-black drop-shadow-md">
                 <i class="fas fa-book-open"></i> 雲端圖書館
             </a>
-            <div id="navAuthSection" class="flex items-center gap-4"></div>
+            <div id="navAuthSection" class="flex items-center gap-3"></div>
         </div>
     </nav>
 
     <main class="container mx-auto px-6 py-10 flex-grow max-w-6xl">
         <div class="flex items-center justify-between mb-8 border-b border-stone-200 pb-4">
-            <h1 id="pageTitle" class="text-3xl font-bold text-gray-800">借閱紀錄</h1>
-            <div class="text-sm text-gray-500 bg-[#fffffb]/50 px-3 py-1 rounded shadow-sm border border-stone-200 backdrop-blur-sm">
-                <i class="fas fa-clock"></i> 即時同步
-            </div>
+            <h1 id="pageTitle" class="text-3xl font-bold text-sumi">借閱紀錄</h1>
+            <div class="text-sm text-rikyu bg-gofun px-3 py-1 rounded shadow-sm border border-stone-200 backdrop-blur-sm"><i class="fas fa-clock"></i> 即時同步</div>
         </div>
-        
-        <div id="loading" class="text-center py-20 text-wakatake">
-            <i class="fas fa-circle-notch fa-spin text-5xl mb-4"></i><br>
-            <span class="text-gray-500 font-bold">正在讀取最新資料...</span>
-        </div>
-
+        <div id="loading" class="text-center py-20 text-wakatake"><i class="fas fa-circle-notch fa-spin text-5xl mb-4"></i><br><span class="text-rikyu font-bold">正在讀取最新資料...</span></div>
         <div id="contentArea" class="hidden"></div>
     </main>
 
     <script>
+        const BTN_STYLE = "bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition text-sm font-bold flex items-center gap-2 border border-white/20 backdrop-blur-sm text-white shadow-sm hover:shadow-md";
         let currentUser = JSON.parse(localStorage.getItem('libraryUser')) || null;
         
         document.addEventListener('DOMContentLoaded', () => {
-            if (!currentUser) {
-                alert('請先登入');
-                window.location.href = 'index.html';
-                return;
-            }
+            if (!currentUser) { alert('請先登入'); window.location.href = 'index.html'; return; }
             updateNavUI();
             loadData();
         });
@@ -60,11 +52,11 @@
         function updateNavUI() {
             const nav = document.getElementById('navAuthSection');
             nav.innerHTML = `
-                <span class="hidden md:inline font-medium opacity-90 text-gray-600">Hi, ${currentUser.Name}</span>
-                <a href="index.html" class="bg-white/40 hover:bg-white/60 text-gray-600 px-4 py-2 rounded-lg font-bold text-sm transition backdrop-blur-sm">
+                <span class="hidden md:inline font-medium opacity-90 text-white/90">Hi, ${currentUser.Name}</span>
+                <a href="index.html" class="${BTN_STYLE}">
                     <i class="fas fa-home"></i> 首頁
                 </a>
-                <button onclick="logout()" class="text-gray-400 hover:text-red-400 transition" title="登出"><i class="fas fa-sign-out-alt text-xl"></i></button>
+                <button onclick="logout()" class="${BTN_STYLE}"><i class="fas fa-sign-out-alt"></i> 登出</button>
             `;
         }
         function logout() { localStorage.removeItem('libraryUser'); window.location.href = 'index.html'; }
@@ -75,83 +67,30 @@
                 const allBooks = await res.json();
                 const isAdmin = (currentUser.Role === 'Admin' || currentUser.Role === 'admin');
                 const container = document.getElementById('contentArea');
-                
                 if (isAdmin) {
-                    document.getElementById('pageTitle').innerHTML = '<i class="fas fa-clipboard-list text-yellow-500"></i> 館藏借閱清單 (管理員)';
+                    document.getElementById('pageTitle').innerHTML = '<i class="fas fa-clipboard-list text-yellow-600"></i> 館藏借閱清單 (管理員)';
                     renderAdminView(container, allBooks);
                 } else {
                     document.getElementById('pageTitle').innerHTML = '<i class="fas fa-book-reader text-wakatake"></i> 我的借閱書架';
                     renderMemberView(container, allBooks);
                 }
-
                 document.getElementById('loading').classList.add('hidden');
                 container.classList.remove('hidden');
                 container.style.opacity = 0;
                 setTimeout(() => { container.style.transition = 'opacity 0.5s'; container.style.opacity = 1; }, 50);
-
-            } catch (e) {
-                console.error(e);
-                alert('資料讀取失敗');
-            }
+            } catch (e) { console.error(e); alert('資料讀取失敗'); }
         }
 
         function renderAdminView(container, books) {
             const borrowedBooks = books.filter(b => b.Borrowers && b.Borrowers.length > 0);
-
             if (borrowedBooks.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-[#fffffb]/90 backdrop-blur-sm rounded-xl shadow p-12 text-center border border-stone-200">
-                        <div class="text-stone-300 text-6xl mb-4"><i class="fas fa-check-circle"></i></div>
-                        <p class="text-gray-500 text-xl font-bold">目前所有館藏都在庫</p>
-                        <p class="text-gray-400">沒有任何書籍被借出</p>
-                    </div>`;
+                container.innerHTML = `<div class="bg-gofun rounded-xl shadow p-12 text-center border border-stone-200"><div class="text-stone-300 text-6xl mb-4"><i class="fas fa-check-circle"></i></div><p class="text-rikyu text-xl font-bold">目前所有館藏都在庫</p><p class="text-rikyu/70">沒有任何書籍被借出</p></div>`;
                 return;
             }
-
-            let html = `
-                <div class="bg-[#fffffb]/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-stone-200">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full leading-normal">
-                            <thead>
-                                <tr class="bg-gray-800 text-white text-left">
-                                    <th class="px-6 py-4 text-sm font-bold uppercase tracking-wider">書籍資訊</th>
-                                    <th class="px-6 py-4 text-sm font-bold uppercase tracking-wider">ISBN</th>
-                                    <th class="px-6 py-4 text-sm font-bold uppercase tracking-wider">目前借閱者</th>
-                                    <th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-            `;
-
+            let html = `<div class="bg-gofun rounded-xl shadow-lg overflow-hidden border border-stone-200"><div class="overflow-x-auto"><table class="min-w-full leading-normal"><thead><tr class="bg-sumi text-white text-left"><th class="px-6 py-4 text-sm font-bold uppercase tracking-wider">書籍資訊</th><th class="px-6 py-4 text-sm font-bold uppercase tracking-wider">ISBN</th><th class="px-6 py-4 text-sm font-bold uppercase tracking-wider">目前借閱者</th><th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">操作</th></tr></thead><tbody class="divide-y divide-gray-100">`;
             borrowedBooks.forEach(book => {
-                const borrowersHtml = book.Borrowers.map(uid => 
-                    `<div class="inline-flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold mr-1 mb-1 border border-blue-100">
-                        <i class="fas fa-user mr-1"></i> ${uid}
-                     </div>`
-                ).join('');
-
-                html += `
-                    <tr class="hover:bg-stone-50 transition duration-150">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-12 h-16 bg-stone-200 rounded overflow-hidden shadow-sm">
-                                    <img class="w-full h-full object-cover" src="${book.CoverUrl}" onerror="this.src='https://via.placeholder.com/50x70'" />
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-gray-900 font-bold text-base">${book.Title}</p>
-                                    <p class="text-gray-500 text-xs mt-0.5">${book.Author}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 font-mono">${book.ISBN}</td>
-                        <td class="px-6 py-4 text-sm">${borrowersHtml}</td>
-                        <td class="px-6 py-4 text-center">
-                            <a href="book_detail.html?isbn=${book.ISBN}" class="text-wakatake hover:text-wakatake_dark font-bold hover:underline">
-                                查看詳情 <i class="fas fa-arrow-right text-xs"></i>
-                            </a>
-                        </td>
-                    </tr>
-                `;
+                const borrowersHtml = book.Borrowers.map(uid => `<div class="inline-flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold mr-1 mb-1 border border-blue-100"><i class="fas fa-user mr-1"></i> ${uid}</div>`).join('');
+                html += `<tr class="hover:bg-stone-50 transition duration-150"><td class="px-6 py-4"><div class="flex items-center"><div class="flex-shrink-0 w-12 h-16 bg-stone-200 rounded overflow-hidden shadow-sm"><img class="w-full h-full object-cover" src="${book.CoverUrl}" onerror="this.src='https://via.placeholder.com/50x70'" /></div><div class="ml-4"><p class="text-sumi font-bold text-base">${book.Title}</p><p class="text-rikyu text-xs mt-0.5">${book.Author}</p></div></div></td><td class="px-6 py-4 text-sm text-rikyu font-mono">${book.ISBN}</td><td class="px-6 py-4 text-sm">${borrowersHtml}</td><td class="px-6 py-4 text-center"><a href="book_detail.html?isbn=${book.ISBN}" class="text-wakatake hover:text-wakatake_dark font-bold hover:underline">查看詳情 <i class="fas fa-arrow-right text-xs"></i></a></td></tr>`;
             });
             html += `</tbody></table></div></div>`;
             container.innerHTML = html;
@@ -160,49 +99,13 @@
         function renderMemberView(container, books) {
             const myIsbns = currentUser.BorrowedBooks || [];
             const myBooks = books.filter(b => myIsbns.includes(b.ISBN));
-
             if (myBooks.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-16 bg-[#fffffb]/90 backdrop-blur-sm rounded-2xl shadow-sm border border-stone-200">
-                        <div class="text-stone-300 text-6xl mb-4"><i class="fas fa-book-open"></i></div>
-                        <p class="text-gray-600 text-xl font-bold mb-4">您目前沒有借閱任何書籍</p>
-                        <a href="index.html" class="inline-block bg-wakatake text-white px-8 py-3 rounded-xl font-bold shadow hover:bg-wakatake_dark transition">前往圖書館借書</a>
-                    </div>`;
+                container.innerHTML = `<div class="text-center py-16 bg-gofun rounded-2xl shadow-sm border border-stone-200"><div class="text-stone-300 text-6xl mb-4"><i class="fas fa-book-open"></i></div><p class="text-rikyu text-xl font-bold mb-4">您目前沒有借閱任何書籍</p><a href="index.html" class="inline-block bg-wakatake text-white px-8 py-3 rounded-xl font-bold shadow hover:bg-wakatake_dark transition">前往圖書館借書</a></div>`;
                 return;
             }
-
             let html = `<div class="grid grid-cols-1 gap-6">`;
-            
             myBooks.forEach(book => {
-                html += `
-                    <div class="bg-[#fffffb]/95 backdrop-blur-sm rounded-2xl shadow-md p-6 flex flex-col md:flex-row gap-6 items-start hover:shadow-lg transition duration-300 border border-stone-200">
-                        <div class="w-full md:w-32 flex-shrink-0">
-                            <img src="${book.CoverUrl}" class="w-full h-auto object-cover rounded shadow-md" onerror="this.src='https://via.placeholder.com/150'">
-                        </div>
-                        <div class="flex-1 w-full">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <span class="text-xs font-bold text-wakatake bg-green-50 px-2 py-1 rounded mb-2 inline-block">${book.Category}</span>
-                                    <h3 class="font-bold text-2xl text-gray-800 mb-1">${book.Title}</h3>
-                                    <p class="text-gray-500 mb-4"><i class="fas fa-pen-nib text-xs mr-1"></i> ${book.Author}</p>
-                                </div>
-                                <div class="text-right hidden md:block">
-                                    <span class="block text-xs text-gray-400 uppercase">ISBN</span>
-                                    <span class="block font-mono text-gray-600">${book.ISBN}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="border-t border-stone-100 pt-4 mt-2 flex flex-col sm:flex-row gap-3">
-                                <a href="book_detail.html?isbn=${book.ISBN}" class="flex-1 text-center border-2 border-stone-100 py-2.5 rounded-xl text-gray-600 font-bold hover:bg-stone-50 hover:border-stone-200 transition">
-                                    <i class="fas fa-info-circle mr-1"></i> 書籍詳情
-                                </a>
-                                <button onclick="returnBook('${book.ISBN}')" class="flex-1 bg-green-500 text-white py-2.5 rounded-xl font-bold hover:bg-green-600 shadow hover:shadow-lg transition">
-                                    <i class="fas fa-undo mr-1"></i> 歸還書籍
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                html += `<div class="bg-gofun rounded-2xl shadow-md p-6 flex flex-col md:flex-row gap-6 items-start hover:shadow-lg transition duration-300 border border-stone-200"><div class="w-full md:w-32 flex-shrink-0"><img src="${book.CoverUrl}" class="w-full h-auto object-cover rounded shadow-md" onerror="this.src='https://via.placeholder.com/150'"></div><div class="flex-1 w-full"><div class="flex justify-between items-start"><div><span class="text-xs font-bold text-wakatake bg-green-50 px-2 py-1 rounded mb-2 inline-block">${book.Category}</span><h3 class="font-bold text-2xl text-sumi mb-1">${book.Title}</h3><p class="text-rikyu mb-4"><i class="fas fa-pen-nib text-xs mr-1"></i> ${book.Author}</p></div><div class="text-right hidden md:block"><span class="block text-xs text-rikyu uppercase">ISBN</span><span class="block font-mono text-sumi">${book.ISBN}</span></div></div><div class="border-t border-stone-100 pt-4 mt-2 flex flex-col sm:flex-row gap-3"><a href="book_detail.html?isbn=${book.ISBN}" class="flex-1 text-center border-2 border-stone-100 py-2.5 rounded-xl text-rikyu font-bold hover:bg-stone-50 hover:border-stone-200 hover:text-sumi transition"><i class="fas fa-info-circle mr-1"></i> 書籍詳情</a><button onclick="returnBook('${book.ISBN}')" class="flex-1 bg-green-500 text-white py-2.5 rounded-xl font-bold hover:bg-green-600 shadow hover:shadow-lg transition"><i class="fas fa-undo mr-1"></i> 歸還書籍</button></div></div></div>`;
             });
             html += `</div>`;
             container.innerHTML = html;
@@ -210,17 +113,7 @@
 
         async function returnBook(isbn) {
             if(!confirm('確認要歸還這本書嗎?')) return;
-            try {
-                const res = await fetch(`${CONFIG.API_URL}/books/${isbn}/return`, {
-                    method: 'POST', body: JSON.stringify({UserID: currentUser.UserID})
-                });
-                if(res.ok) {
-                    alert('歸還成功');
-                    currentUser.BorrowedBooks = currentUser.BorrowedBooks.filter(b => b !== isbn);
-                    localStorage.setItem('libraryUser', JSON.stringify(currentUser));
-                    loadData();
-                } else { alert('歸還失敗'); }
-            } catch(e) { alert('系統錯誤'); }
+            try { const res = await fetch(`${CONFIG.API_URL}/books/${isbn}/return`, { method: 'POST', body: JSON.stringify({UserID: currentUser.UserID}) }); if(res.ok) { alert('歸還成功'); currentUser.BorrowedBooks = currentUser.BorrowedBooks.filter(b => b !== isbn); localStorage.setItem('libraryUser', JSON.stringify(currentUser)); loadData(); } else { alert('歸還失敗'); } } catch(e) { alert('系統錯誤'); }
         }
     </script>
 </body>

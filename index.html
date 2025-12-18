@@ -9,21 +9,40 @@
     <script src="config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68', paper: '#f7f6f2', paper_dark: '#eae8e1' } } } }
+        tailwind.config = { 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        wakatake: '#5DAC81',       // 若竹色 (亮點)
+                        wakatake_dark: '#488c68',  
+                        chitose: '#316745',        // 千歲綠 (導航背景)
+                        sumi: '#303133',           // 墨色 (主文字)
+                        rikyu: '#888E7E',          // 利休鼠 (次要文字)
+                        gofun: '#fffffc',          // 胡粉 (卡片背景)
+                    } 
+                } 
+            } 
+        }
     </script>
     <style>
         body {
-            background-color: #f7f6f2;
-            background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-            color: #4b4b4b; /* 字體改為深灰，比純黑更柔和 */
+            background-color: #f7f6f2; /* 淺米色基底 */
+            /* 增強了噪點的強度 (opacity 0.08) 與頻率，模擬更真實的和紙纖維感 */
+            background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+            color: #303133;
         }
+        /* 自定義捲軸樣式，讓它不那麼突兀 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f7f6f2; }
+        ::-webkit-scrollbar-thumb { background: #888E7E; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5DAC81; }
     </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col">
 
-    <nav class="bg-[#eae8e1]/90 backdrop-blur shadow-sm sticky top-0 z-50 border-b border-stone-200">
+    <nav class="bg-chitose shadow-lg sticky top-0 z-50 border-b border-white/10">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-bold tracking-wider text-wakatake flex items-center gap-2">
+            <a href="index.html" class="text-2xl font-bold tracking-wider text-white flex items-center gap-2 hover:text-white/80 transition shadow-black drop-shadow-md">
                 <i class="fas fa-book-open"></i> 雲端圖書館
             </a>
             <div id="navAuthSection" class="flex items-center gap-3"></div>
@@ -32,21 +51,21 @@
 
     <header class="py-16 relative">
         <div class="container mx-auto px-6 text-center relative z-10">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4 tracking-tight">探索知識的海洋</h1>
-            <p class="text-gray-600 mb-8 text-lg">數千本藏書，隨時隨地，想讀就讀</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-sumi mb-4 tracking-tight drop-shadow-sm">探索知識的海洋</h1>
+            <p class="text-rikyu mb-8 text-lg font-medium tracking-wide"> </p>
             
-            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-4 p-3 bg-[#fffffb]/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-stone-200/50">
-                <div class="relative md:w-1/4">
-                    <i class="fas fa-filter absolute left-4 top-3.5 text-gray-400"></i>
-                    <select id="category" class="w-full bg-transparent text-gray-700 pl-10 pr-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-wakatake appearance-none cursor-pointer hover:bg-stone-100/50 transition">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-4 p-4 bg-gofun/90 backdrop-blur-sm rounded-2xl shadow-xl border border-stone-200/60">
+                <div class="relative md:w-1/4 border-b md:border-b-0 md:border-r border-stone-200">
+                    <i class="fas fa-filter absolute left-4 top-3.5 text-rikyu/70"></i>
+                    <select id="category" class="w-full bg-transparent text-sumi pl-10 pr-4 py-3 rounded-xl outline-none focus:bg-stone-50 transition appearance-none cursor-pointer font-medium">
                         <option value="All">全部分類</option>
                     </select>
                 </div>
                 <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                    <input type="text" id="keyword" placeholder="輸入書名、作者或 ISBN..." class="w-full bg-transparent text-gray-800 pl-10 pr-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-wakatake transition placeholder-gray-400">
+                    <i class="fas fa-search absolute left-4 top-3.5 text-rikyu/70"></i>
+                    <input type="text" id="keyword" placeholder="輸入書名、作者或 ISBN..." class="w-full bg-transparent text-sumi pl-10 pr-4 py-3 rounded-xl outline-none focus:bg-stone-50 transition placeholder-rikyu/40 font-medium">
                 </div>
-                <button onclick="searchBooks()" class="bg-wakatake text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-wakatake_dark hover:shadow-xl transition duration-300 flex items-center justify-center gap-2">
+                <button onclick="searchBooks()" class="bg-wakatake text-white px-8 py-3 rounded-xl font-bold shadow-md hover:bg-wakatake_dark hover:shadow-lg transition duration-300 flex items-center justify-center gap-2 tracking-wide">
                     <i class="fas fa-search"></i> 搜尋
                 </button>
             </div>
@@ -58,55 +77,39 @@
             </div>
     </main>
 
-    <footer class="bg-[#4a4a4a] text-[#eae8e1] py-8 text-center mt-auto">
-        <p>&copy; 2025 Cloud Library System. All rights reserved.</p>
+    <footer class="bg-sumi text-[#eae8e1] py-8 text-center mt-auto border-t-4 border-wakatake">
+        <p class="font-medium tracking-wider">&copy; 2025 Cloud Library System. All rights reserved.</p>
     </footer>
 
-    <div id="authModal" class="hidden fixed inset-0 bg-[#4a4a4a]/60 backdrop-blur-sm flex items-center justify-center z-[60] px-4 transition-opacity duration-300">
-        <div class="bg-[#fcfbf9] rounded-2xl shadow-2xl w-full max-w-md relative p-8 transform scale-100 transition-transform duration-300 border border-[#eae8e1]">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 transition"><i class="fas fa-times"></i></button>
-            
+    <div id="authModal" class="hidden fixed inset-0 bg-sumi/70 backdrop-blur-sm flex items-center justify-center z-[60] px-4 transition-opacity duration-300">
+        <div class="bg-gofun rounded-2xl shadow-2xl w-full max-w-md relative p-8 transform scale-100 transition-transform duration-300 border border-stone-200">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-rikyu hover:text-sumi w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 transition"><i class="fas fa-times"></i></button>
             <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">歡迎回來</h2>
-                <p class="text-sm text-gray-500 mt-1">請登入以繼續借閱書籍</p>
+                <h2 class="text-2xl font-bold text-sumi">歡迎回來</h2>
+                <p class="text-sm text-rikyu mt-1">請登入以繼續借閱書籍</p>
             </div>
-
             <div class="flex border-b border-stone-200 mb-6">
                 <button onclick="switchTab('login')" id="tabLogin" class="flex-1 py-3 font-bold text-wakatake border-b-2 border-wakatake transition-colors">登入</button>
-                <button onclick="switchTab('register')" id="tabRegister" class="flex-1 py-3 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors">註冊</button>
+                <button onclick="switchTab('register')" id="tabRegister" class="flex-1 py-3 font-bold text-rikyu border-b-2 border-transparent hover:text-sumi transition-colors">註冊</button>
             </div>
-
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">帳號 (UserID)</label>
-                    <input name="UserID" required class="w-full border-stone-200 bg-white/50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition" placeholder="請輸入帳號">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">密碼</label>
-                    <input name="Password" type="password" required class="w-full border-stone-200 bg-white/50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition" placeholder="••••••••">
-                </div>
+                <div><label class="block text-xs font-bold text-rikyu uppercase mb-1">帳號 (UserID)</label><input name="UserID" required class="w-full border-stone-200 bg-stone-50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition text-sumi"></div>
+                <div><label class="block text-xs font-bold text-rikyu uppercase mb-1">密碼</label><input name="Password" type="password" required class="w-full border-stone-200 bg-stone-50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition text-sumi"></div>
                 <button class="w-full bg-wakatake text-white py-3 rounded-xl font-bold shadow-lg hover:bg-wakatake_dark transform active:scale-95 transition">立即登入</button>
             </form>
-
             <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-5 hidden">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">設定帳號</label>
-                    <input name="UserID" required class="w-full border-stone-200 bg-white/50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">您的姓名</label>
-                    <input name="Name" required class="w-full border-stone-200 bg-white/50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">設定密碼</label>
-                    <input name="Password" type="password" required class="w-full border-stone-200 bg-white/50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition">
-                </div>
-                <button class="w-full bg-blue-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-600 transform active:scale-95 transition">註冊會員</button>
+                <div><label class="block text-xs font-bold text-rikyu uppercase mb-1">設定帳號</label><input name="UserID" required class="w-full border-stone-200 bg-stone-50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition text-sumi"></div>
+                <div><label class="block text-xs font-bold text-rikyu uppercase mb-1">您的姓名</label><input name="Name" required class="w-full border-stone-200 bg-stone-50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition text-sumi"></div>
+                <div><label class="block text-xs font-bold text-rikyu uppercase mb-1">設定密碼</label><input name="Password" type="password" required class="w-full border-stone-200 bg-stone-50 border px-4 py-3 rounded-xl focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition text-sumi"></div>
+                <button class="w-full bg-wakatake text-white py-3 rounded-xl font-bold shadow-lg hover:bg-wakatake_dark transform active:scale-95 transition">註冊會員</button>
             </form>
         </div>
     </div>
 
     <script>
+        // 定義共用的按鈕樣式 (Glassmorphism)
+        const BTN_STYLE = "bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition text-sm font-bold flex items-center gap-2 border border-white/20 backdrop-blur-sm text-white shadow-sm hover:shadow-md";
+
         let currentUser = JSON.parse(localStorage.getItem('libraryUser')) || null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -139,21 +142,21 @@
                 let actionBtn = '';
                 if (isAdmin) {
                     actionBtn = `
-                        <a href="admin.html" class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-yellow-600 shadow transition flex items-center gap-2"><i class="fas fa-plus"></i> <span class="hidden md:inline">新增</span></a>
-                        <a href="my_books.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-600 shadow transition flex items-center gap-2"><i class="fas fa-users-cog"></i> <span class="hidden md:inline">管理</span></a>
+                        <a href="admin.html" class="${BTN_STYLE}"><i class="fas fa-plus"></i> <span class="hidden md:inline">新增</span></a>
+                        <a href="my_books.html" class="${BTN_STYLE}"><i class="fas fa-users-cog"></i> <span class="hidden md:inline">管理</span></a>
                     `;
                 } else {
                     actionBtn = `
-                        <a href="my_books.html" class="bg-wakatake text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-wakatake_dark shadow transition flex items-center gap-2"><i class="fas fa-book-reader"></i> 借閱 (${user.BorrowedBooks ? user.BorrowedBooks.length : 0})</a>
+                        <a href="my_books.html" class="${BTN_STYLE}"><i class="fas fa-book-reader"></i> 借閱 (${user.BorrowedBooks ? user.BorrowedBooks.length : 0})</a>
                     `;
                 }
                 nav.innerHTML = `
-                    <span class="text-sm font-medium text-gray-600 hidden md:inline">Hi, ${user.Name}</span> 
+                    <span class="text-sm font-medium text-white/90 hidden md:inline tracking-wide">Hi, ${user.Name}</span> 
                     ${actionBtn} 
-                    <button onclick="logout()" class="text-gray-400 hover:text-red-500 px-3 py-2 transition"><i class="fas fa-sign-out-alt text-lg"></i></button>
+                    <button onclick="logout()" class="${BTN_STYLE}"><i class="fas fa-sign-out-alt"></i> 登出</button>
                 `;
             } else {
-                nav.innerHTML = `<button onclick="openModal('login')" class="bg-wakatake text-white px-6 py-2 rounded-full font-bold shadow hover:bg-wakatake_dark hover:shadow-lg transition transform hover:-translate-y-0.5">登入 / 註冊</button>`;
+                nav.innerHTML = `<button onclick="openModal('login')" class="${BTN_STYLE}">登入 / 註冊</button>`;
             }
         }
 
@@ -162,7 +165,7 @@
             const kw = document.getElementById('keyword').value;
             const div = document.getElementById('results');
             
-            div.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400"><i class="fas fa-spinner fa-spin text-3xl"></i></div>';
+            div.innerHTML = '<div class="col-span-full text-center py-20 text-rikyu"><i class="fas fa-spinner fa-spin text-3xl"></i></div>';
 
             try {
                 const res = await fetch(`${CONFIG.API_URL}/books?category=${cat}&q=${kw}`);
@@ -170,7 +173,7 @@
                 div.innerHTML = '';
                 
                 if(books.length === 0) {
-                    div.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400 text-lg">沒有找到相關書籍</div>';
+                    div.innerHTML = '<div class="col-span-full text-center py-20 text-rikyu text-lg font-medium">沒有找到相關書籍</div>';
                     return;
                 }
 
@@ -188,7 +191,7 @@
                         const isBorrowed = currentUser && currentUser.BorrowedBooks && currentUser.BorrowedBooks.includes(book.ISBN);
                         const hasStock = book.AvailableCopies > 0;
                         if (!currentUser) {
-                            btns = `<button onclick="openModal('login')" class="w-full bg-stone-100 text-gray-500 py-2 rounded-lg mt-4 font-bold text-sm hover:bg-stone-200 transition">登入以借閱</button>`;
+                            btns = `<button onclick="openModal('login')" class="w-full bg-stone-100 text-rikyu py-2 rounded-lg mt-4 font-bold text-sm hover:bg-stone-200 transition">登入以借閱</button>`;
                         } else if (isBorrowed) {
                             btns = `<button onclick="returnBook('${book.ISBN}')" class="w-full bg-green-50 text-green-700 py-2 rounded-lg mt-4 font-bold text-sm hover:bg-green-100 transition border border-green-200">歸還書籍</button>`;
                         } else if (hasStock) {
@@ -198,12 +201,14 @@
                         }
                     }
 
-                    // *** 卡片背景色調整為 bg-[#fffffb]/80 (奶油白+透視) ***
+                    // Card: 胡粉色背景 + 微邊框
                     div.innerHTML += `
-                        <div class="bg-[#fffffb]/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col h-full border border-stone-100 group">
+                        <div class="bg-gofun rounded-2xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col h-full border border-stone-200/60 group relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-wakatake to-chitose opacity-0 group-hover:opacity-100 transition"></div>
+                            
                             <a href="book_detail.html?isbn=${book.ISBN}" class="block relative aspect-[3/4] w-full mb-4 bg-stone-100 rounded-xl overflow-hidden flex items-center justify-center">
                                 <img src="${book.CoverUrl}" class="max-w-full max-h-full object-contain drop-shadow-md group-hover:scale-105 transition duration-500" alt="${book.Title}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Cover'">
-                                <div class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                                <div class="absolute top-2 right-2 bg-sumi/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm shadow-sm">
                                     <i class="fas fa-layer-group"></i> ${book.AvailableCopies}
                                 </div>
                             </a>
@@ -211,9 +216,9 @@
                             <div class="flex-grow">
                                 <div class="text-xs text-wakatake font-bold mb-1 tracking-wide uppercase">${book.Category}</div>
                                 <a href="book_detail.html?isbn=${book.ISBN}" class="hover:text-wakatake transition block">
-                                    <h3 class="font-bold text-gray-800 text-lg leading-tight mb-1 line-clamp-2" title="${book.Title}">${book.Title}</h3>
+                                    <h3 class="font-bold text-sumi text-lg leading-tight mb-1 line-clamp-2" title="${book.Title}">${book.Title}</h3>
                                 </a>
-                                <p class="text-sm text-gray-500 line-clamp-1">${book.Author}</p>
+                                <p class="text-sm text-rikyu line-clamp-1">${book.Author}</p>
                             </div>
                             
                             ${btns}
@@ -247,8 +252,8 @@
             document.getElementById('registerForm').className = !isLogin ? 'space-y-5' : 'hidden';
             const tabL = document.getElementById('tabLogin');
             const tabR = document.getElementById('tabRegister');
-            tabL.className = isLogin ? "flex-1 py-3 font-bold text-wakatake border-b-2 border-wakatake transition-colors" : "flex-1 py-3 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors";
-            tabR.className = !isLogin ? "flex-1 py-3 font-bold text-wakatake border-b-2 border-wakatake transition-colors" : "flex-1 py-3 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors";
+            tabL.className = isLogin ? "flex-1 py-3 font-bold text-wakatake border-b-2 border-wakatake transition-colors" : "flex-1 py-3 font-bold text-rikyu border-b-2 border-transparent hover:text-sumi transition-colors";
+            tabR.className = !isLogin ? "flex-1 py-3 font-bold text-wakatake border-b-2 border-wakatake transition-colors" : "flex-1 py-3 font-bold text-rikyu border-b-2 border-transparent hover:text-sumi transition-colors";
         }
 
         async function handleLogin(e) {
