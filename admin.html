@@ -31,9 +31,14 @@
                 <div class="col-span-1"><label class="block font-bold mb-1">書名 *</label><input name="Title" required class="w-full border p-2 rounded"></div>
                 <div class="col-span-1"><label class="block font-bold mb-1">作者</label><input name="Author" class="w-full border p-2 rounded"></div>
                 <div class="col-span-1"><label class="block font-bold mb-1">出版社</label><input name="Publisher" class="w-full border p-2 rounded"></div>
-                <div class="col-span-1"><label class="block font-bold">分類</label>
-                    <select name="Category" id="catField" class="w-full border p-2"></select>
+
+                <div class="col-span-1">
+                    <label class="block font-bold mb-1">分類</label>
+                    <select name="Category" id="categoryField" class="w-full border p-2 rounded focus:ring-2 focus:ring-wakatake outline-none">
+                        <option>載入中...</option>
+                    </select>
                 </div>
+
                 <div class="col-span-1"><label class="block font-bold mb-1">數量</label><input name="TotalCopies" type="number" value="1" class="w-full border p-2 rounded"></div>
                 <div class="col-span-2"><label class="block font-bold mb-1">封面圖片</label><input name="CoverUrl" class="w-full border p-2 rounded"></div>
                 <div class="col-span-2"><label class="block font-bold mb-1">簡介</label><textarea name="Description" rows="3" class="w-full border p-2 rounded"></textarea></div>
@@ -44,24 +49,23 @@
     </div>
 
     <script>
-        // 安全檢查：只有管理員能進來
         document.addEventListener('DOMContentLoaded', () => {
             // 1. 權限檢查
             const user = JSON.parse(localStorage.getItem('libraryUser'));
             if (!user || (user.Role !== 'Admin' && user.Role !== 'admin')) {
                 alert('權限不足');
                 window.location.href = 'index.html';
-                return; // 加入 return 避免繼續執行
+                return;
             }
 
-            // 2. [修正] 這裡要抓取 'catField'，因為上方的 HTML 是 id="catField"
-            const sel = document.getElementById('catField'); // <--- 修改了這裡
+            // 2. 載入分類
+            // 確保這裡抓取的 ID 與上方的 HTML ID 一致 (都是 categoryField)
+            const sel = document.getElementById('categoryField');
             
             if (sel && typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
-                // 清空可能的預設值，確保乾淨
-                sel.innerHTML = ''; 
+                sel.innerHTML = ''; // 清空目前的選項
                 
-                // 加入一個預設提示選項 (可選)
+                // 加入預設提示
                 const defaultOpt = document.createElement('option');
                 defaultOpt.value = "";
                 defaultOpt.textContent = "-- 請選擇分類 --";
@@ -69,6 +73,7 @@
                 defaultOpt.selected = true;
                 sel.appendChild(defaultOpt);
 
+                // 加入 config.js 中的分類
                 CONFIG.CATEGORIES.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c;
@@ -76,7 +81,8 @@
                     sel.appendChild(opt);
                 });
             } else {
-                console.error("無法載入分類：找不到 #catField 或 CONFIG 未定義");
+                console.error("錯誤：找不到 #categoryField 元素，或 CONFIG 未載入");
+                if(sel) sel.innerHTML = '<option>載入失敗</option>';
             }
         });
 
@@ -92,6 +98,8 @@
                 if(res.ok) {
                     if(confirm('新增成功！是否留在本頁繼續新增？')) {
                         e.target.reset();
+                        // 重置分類選單
+                        document.getElementById('categoryField').selectedIndex = 0;
                     } else {
                         window.location.href = 'index.html';
                     }
