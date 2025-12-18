@@ -4,46 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>編輯書籍</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81' } } } }
+        tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68' } } } }
     </script>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen">
-    <nav class="bg-gray-800 text-white px-6 py-4">
-        <div class="container mx-auto flex justify-between">
-            <span class="font-bold text-xl">編輯書籍</span>
-            <a href="index.html" class="bg-gray-600 px-4 py-2 rounded">返回首頁</a>
+<body class="bg-gray-50 font-sans min-h-screen">
+    
+    <nav class="bg-gray-900 text-white px-6 py-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <span class="font-bold text-xl tracking-wide"><i class="fas fa-edit"></i> 編輯書籍資料</span>
+            <a href="index.html" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition text-sm font-bold flex items-center gap-2">
+                <i class="fas fa-times"></i> 取消編輯
+            </a>
         </div>
     </nav>
 
-    <div class="container mx-auto px-6 py-8">
-        <div class="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
-            <h3 class="text-2xl font-bold text-wakatake mb-6">修改書籍資料</h3>
+    <div class="container mx-auto px-6 py-12 flex justify-center">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden border border-gray-100 relative min-h-[400px]">
             
-            <div id="loadingMsg" class="text-center text-gray-500 my-4">正在載入資料...</div>
+            <div id="loadingMsg" class="absolute inset-0 flex items-center justify-center flex-col text-wakatake bg-white z-10">
+                <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                <p>正在載入書籍資料...</p>
+            </div>
             
-            <form id="editForm" onsubmit="updateBook(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
-                <div class="col-span-1"><label class="block font-bold">ISBN (不可修改)</label><input name="ISBN" id="isbnField" readonly class="w-full border p-2 bg-gray-200 cursor-not-allowed"></div>
-                <div class="col-span-1"><label class="block font-bold">書名</label><input name="Title" id="titleField" required class="w-full border p-2"></div>
-                <div class="col-span-1"><label class="block font-bold">作者</label><input name="Author" id="authorField" class="w-full border p-2"></div>
-                <div class="col-span-1"><label class="block font-bold">出版社</label><input name="Publisher" id="pubField" class="w-full border p-2"></div>
+            <form id="editForm" onsubmit="updateBook(event)" class="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 hidden opacity-0 transition-opacity duration-500">
                 
-                <div class="col-span-1"><label class="block font-bold">分類</label>
-                    <select name="Category" id="catField" class="w-full border p-2"></select>
+                <div class="col-span-1 md:col-span-2 border-b pb-4 mb-2">
+                    <h2 class="text-2xl font-bold text-gray-800">修改內容</h2>
                 </div>
-                
-                <div class="col-span-1">
-                    <label class="block font-bold">總館藏數量</label>
-                    <input name="TotalCopies" id="totalField" type="number" min="1" class="w-full border p-2">
-                    <p class="text-xs text-gray-500 mt-1" id="borrowInfo">目前已借出: 讀取中...</p>
-                </div>
-                
-                <div class="col-span-2"><label class="block font-bold">封面網址</label><input name="CoverUrl" id="coverField" class="w-full border p-2"></div>
-                <div class="col-span-2"><label class="block font-bold">簡介</label><textarea name="Description" id="descField" rows="3" class="w-full border p-2"></textarea></div>
 
-                <button type="submit" class="col-span-2 bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700">儲存修改</button>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-500 mb-2">ISBN (鎖定)</label>
+                        <div class="relative">
+                            <input name="ISBN" id="isbnField" readonly class="w-full border-gray-200 bg-gray-100 border p-3 rounded-lg text-gray-500 cursor-not-allowed pl-10">
+                            <i class="fas fa-lock absolute left-4 top-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">書名</label>
+                        <input name="Title" id="titleField" required class="w-full border-gray-200 bg-gray-50 border p-3 rounded-lg focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">作者</label>
+                        <input name="Author" id="authorField" class="w-full border-gray-200 bg-gray-50 border p-3 rounded-lg focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">出版社</label>
+                        <input name="Publisher" id="pubField" class="w-full border-gray-200 bg-gray-50 border p-3 rounded-lg focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition">
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">分類</label>
+                        <div class="relative">
+                            <select name="Category" id="catField" class="w-full border-gray-200 bg-gray-50 border p-3 rounded-lg focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition appearance-none"></select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500"><i class="fas fa-chevron-down text-xs"></i></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <label class="block text-sm font-bold text-blue-800 mb-2">庫存管理</label>
+                        <input name="TotalCopies" id="totalField" type="number" min="1" class="w-full border-blue-200 bg-white border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition">
+                        <div id="borrowInfo" class="mt-2 text-xs font-bold text-blue-600 bg-blue-100 inline-block px-2 py-1 rounded">
+                            <i class="fas fa-info-circle"></i> 讀取中...
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">封面網址</label>
+                        <input name="CoverUrl" id="coverField" class="w-full border-gray-200 bg-gray-50 border p-3 rounded-lg focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition">
+                    </div>
+                </div>
+
+                <div class="col-span-1 md:col-span-2 space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">簡介</label>
+                        <textarea name="Description" id="descField" rows="5" class="w-full border-gray-200 bg-gray-50 border p-3 rounded-lg focus:ring-2 focus:ring-wakatake focus:bg-white outline-none transition"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 text-lg shadow-lg transition transform active:scale-95">
+                        <i class="fas fa-save"></i> 儲存修改
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -53,7 +101,6 @@
         const isbn = urlParams.get('isbn');
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // 載入分類
             const catSelect = document.getElementById('catField');
             if(typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
                 CONFIG.CATEGORIES.forEach(c => {
@@ -74,16 +121,10 @@
 
         async function loadBookData(isbn) {
             try {
-                console.log(`正在讀取書籍: ${CONFIG.API_URL}/books/${isbn}`);
-                
                 const res = await fetch(`${CONFIG.API_URL}/books/${isbn}`);
-                
                 if (!res.ok) throw new Error('API 回應錯誤');
-                
                 const book = await res.json();
-                console.log('取得資料:', book); // Debug 用
 
-                // 填入表單
                 document.getElementById('isbnField').value = book.ISBN || '';
                 document.getElementById('titleField').value = book.Title || '';
                 document.getElementById('authorField').value = book.Author || '';
@@ -93,34 +134,30 @@
                 document.getElementById('coverField').value = book.CoverUrl || '';
                 document.getElementById('descField').value = book.Description || '';
                 
-                // 計算並顯示借閱資訊 (給管理員參考用)
                 const borrowed = (book.TotalCopies || 0) - (book.AvailableCopies || 0);
-                document.getElementById('borrowInfo').textContent = `目前已借出: ${borrowed} 本 (修改後的總數不可低於此值)`;
-                document.getElementById('totalField').min = borrowed; // 設定 HTML 最小值限制
+                document.getElementById('borrowInfo').innerHTML = `<i class="fas fa-book-reader"></i> 目前已借出: ${borrowed} 本 (總數不可低於此值)`;
+                document.getElementById('totalField').min = borrowed;
 
-                // 顯示表單
                 document.getElementById('loadingMsg').classList.add('hidden');
-                document.getElementById('editForm').classList.remove('hidden');
+                const form = document.getElementById('editForm');
+                form.classList.remove('hidden');
+                // 簡單的淡入動畫
+                setTimeout(() => form.classList.remove('opacity-0'), 50);
 
             } catch(e) { 
-                console.error(e);
-                document.getElementById('loadingMsg').textContent = '讀取失敗，請確認 API Gateway 設定 (GET /books/{isbn})';
-                document.getElementById('loadingMsg').classList.add('text-red-500');
+                document.getElementById('loadingMsg').innerHTML = `<span class="text-red-500"><i class="fas fa-exclamation-triangle"></i> 讀取失敗</span>`;
             }
         }
 
         async function updateBook(e) {
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target).entries());
-            
             if(!confirm('確定要儲存修改嗎？')) return;
 
             try {
                 const res = await fetch(`${CONFIG.API_URL}/admin/books/${isbn}`, {
-                    method: 'PUT',
-                    body: JSON.stringify(data)
+                    method: 'PUT', body: JSON.stringify(data)
                 });
-                
                 const result = await res.json();
                 if(res.ok) {
                     alert('修改成功！');
@@ -128,7 +165,7 @@
                 } else {
                     alert('修改失敗: ' + result.message);
                 }
-            } catch(e) { alert('系統錯誤'); console.error(e); }
+            } catch(e) { alert('系統錯誤'); }
         }
     </script>
 </body>
