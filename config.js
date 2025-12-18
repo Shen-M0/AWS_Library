@@ -1,6 +1,6 @@
 const CONFIG = {
     // 請確認這是你最新的 API Gateway Invoke URL
-    API_URL: "https://pcczjpzgn1.execute-api.us-east-1.amazonaws.com/prod",
+    API_URL: "https://b87bcevz08.execute-api.us-east-1.amazonaws.com/prod",
     
     // 集中管理的書籍分類
     CATEGORIES: [
