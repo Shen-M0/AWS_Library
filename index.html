@@ -27,11 +27,9 @@
     <style>
         body {
             background-color: #f7f6f2; /* 淺米色基底 */
-            /* 增強了噪點的強度 (opacity 0.08) 與頻率，模擬更真實的和紙纖維感 */
             background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
             color: #303133;
         }
-        /* 自定義捲軸樣式，讓它不那麼突兀 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f7f6f2; }
         ::-webkit-scrollbar-thumb { background: #888E7E; border-radius: 4px; }
@@ -107,7 +105,6 @@
     </div>
 
     <script>
-        // 定義共用的按鈕樣式 (Glassmorphism)
         const BTN_STYLE = "bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition text-sm font-bold flex items-center gap-2 border border-white/20 backdrop-blur-sm text-white shadow-sm hover:shadow-md";
 
         let currentUser = JSON.parse(localStorage.getItem('libraryUser')) || null;
@@ -182,26 +179,28 @@
                 books.forEach(book => {
                     let btns = '';
                     if (isAdmin) {
+                        // 管理員按鈕：白色底，深色字，懸停變色，保持專業感
                         btns = `
-                            <div class="flex gap-2 mt-4 pt-3 border-t border-stone-100">
-                                <a href="edit_book.html?isbn=${book.ISBN}" class="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 text-center py-2 rounded-lg text-sm font-bold transition">修改</a>
-                                <button onclick="deleteBook('${book.ISBN}')" class="flex-1 bg-red-50 text-red-600 hover:bg-red-100 py-2 rounded-lg text-sm font-bold transition">刪除</button>
+                            <div class="flex gap-3 mt-4 pt-4 border-t border-stone-100">
+                                <a href="edit_book.html?isbn=${book.ISBN}" class="flex-1 bg-white border border-stone-200 text-sumi hover:border-wakatake hover:text-wakatake hover:shadow-md text-center py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2"><i class="fas fa-edit"></i> 修改</a>
+                                <button onclick="deleteBook('${book.ISBN}')" class="flex-1 bg-white border border-stone-200 text-rikyu hover:border-red-400 hover:text-red-500 hover:shadow-md py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2"><i class="fas fa-trash-alt"></i> 刪除</button>
                             </div>`;
                     } else {
                         const isBorrowed = currentUser && currentUser.BorrowedBooks && currentUser.BorrowedBooks.includes(book.ISBN);
                         const hasStock = book.AvailableCopies > 0;
                         if (!currentUser) {
-                            btns = `<button onclick="openModal('login')" class="w-full bg-stone-100 text-rikyu py-2 rounded-lg mt-4 font-bold text-sm hover:bg-stone-200 transition">登入以借閱</button>`;
+                            btns = `<button onclick="openModal('login')" class="w-full bg-stone-100 text-rikyu py-2.5 rounded-xl mt-4 font-bold text-sm hover:bg-stone-200 hover:text-sumi transition">登入以借閱</button>`;
                         } else if (isBorrowed) {
-                            btns = `<button onclick="returnBook('${book.ISBN}')" class="w-full bg-green-50 text-green-700 py-2 rounded-lg mt-4 font-bold text-sm hover:bg-green-100 transition border border-green-200">歸還書籍</button>`;
+                            // 歸還按鈕：框線風格，與借閱區分
+                            btns = `<button onclick="returnBook('${book.ISBN}')" class="w-full bg-white border-2 border-wakatake text-wakatake py-2 rounded-xl mt-4 font-bold text-sm hover:bg-wakatake hover:text-white transition shadow-sm"><i class="fas fa-undo"></i> 歸還書籍</button>`;
                         } else if (hasStock) {
-                            btns = `<button onclick="borrowBook('${book.ISBN}')" class="w-full bg-wakatake text-white py-2 rounded-lg mt-4 font-bold text-sm hover:bg-wakatake_dark shadow-md hover:shadow-lg transition">立即借閱</button>`;
+                            // 借閱按鈕：主色若竹色
+                            btns = `<button onclick="borrowBook('${book.ISBN}')" class="w-full bg-wakatake text-white py-2.5 rounded-xl mt-4 font-bold text-sm hover:bg-wakatake_dark shadow-md hover:shadow-lg transition"><i class="fas fa-book-reader"></i> 立即借閱</button>`;
                         } else {
-                            btns = `<button disabled class="w-full bg-stone-100 text-gray-400 py-2 rounded-lg mt-4 font-bold text-sm cursor-not-allowed">已全數借完</button>`;
+                            btns = `<button disabled class="w-full bg-stone-100 text-stone-400 border border-stone-200 py-2.5 rounded-xl mt-4 font-bold text-sm cursor-not-allowed">已全數借完</button>`;
                         }
                     }
 
-                    // Card: 胡粉色背景 + 微邊框
                     div.innerHTML += `
                         <div class="bg-gofun rounded-2xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col h-full border border-stone-200/60 group relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-wakatake to-chitose opacity-0 group-hover:opacity-100 transition"></div>

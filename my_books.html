@@ -68,7 +68,7 @@
                 const isAdmin = (currentUser.Role === 'Admin' || currentUser.Role === 'admin');
                 const container = document.getElementById('contentArea');
                 if (isAdmin) {
-                    document.getElementById('pageTitle').innerHTML = '<i class="fas fa-clipboard-list text-yellow-600"></i> 館藏借閱清單 (管理員)';
+                    document.getElementById('pageTitle').innerHTML = '<i class="fas fa-clipboard-list text-wakatake"></i> 館藏借閱清單 (管理員)';
                     renderAdminView(container, allBooks);
                 } else {
                     document.getElementById('pageTitle').innerHTML = '<i class="fas fa-book-reader text-wakatake"></i> 我的借閱書架';
@@ -105,7 +105,10 @@
             }
             let html = `<div class="grid grid-cols-1 gap-6">`;
             myBooks.forEach(book => {
-                html += `<div class="bg-gofun rounded-2xl shadow-md p-6 flex flex-col md:flex-row gap-6 items-start hover:shadow-lg transition duration-300 border border-stone-200"><div class="w-full md:w-32 flex-shrink-0"><img src="${book.CoverUrl}" class="w-full h-auto object-cover rounded shadow-md" onerror="this.src='https://via.placeholder.com/150'"></div><div class="flex-1 w-full"><div class="flex justify-between items-start"><div><span class="text-xs font-bold text-wakatake bg-green-50 px-2 py-1 rounded mb-2 inline-block">${book.Category}</span><h3 class="font-bold text-2xl text-sumi mb-1">${book.Title}</h3><p class="text-rikyu mb-4"><i class="fas fa-pen-nib text-xs mr-1"></i> ${book.Author}</p></div><div class="text-right hidden md:block"><span class="block text-xs text-rikyu uppercase">ISBN</span><span class="block font-mono text-sumi">${book.ISBN}</span></div></div><div class="border-t border-stone-100 pt-4 mt-2 flex flex-col sm:flex-row gap-3"><a href="book_detail.html?isbn=${book.ISBN}" class="flex-1 text-center border-2 border-stone-100 py-2.5 rounded-xl text-rikyu font-bold hover:bg-stone-50 hover:border-stone-200 hover:text-sumi transition"><i class="fas fa-info-circle mr-1"></i> 書籍詳情</a><button onclick="returnBook('${book.ISBN}')" class="flex-1 bg-green-500 text-white py-2.5 rounded-xl font-bold hover:bg-green-600 shadow hover:shadow-lg transition"><i class="fas fa-undo mr-1"></i> 歸還書籍</button></div></div></div>`;
+                // 更新按鈕樣式：詳情 (次要) 與 歸還 (主要/框線)
+                html += `<div class="bg-gofun rounded-2xl shadow-md p-6 flex flex-col md:flex-row gap-6 items-start hover:shadow-lg transition duration-300 border border-stone-200"><div class="w-full md:w-32 flex-shrink-0"><img src="${book.CoverUrl}" class="w-full h-auto object-cover rounded shadow-md" onerror="this.src='https://via.placeholder.com/150'"></div><div class="flex-1 w-full"><div class="flex justify-between items-start"><div><span class="text-xs font-bold text-wakatake bg-green-50 px-2 py-1 rounded mb-2 inline-block">${book.Category}</span><h3 class="font-bold text-2xl text-sumi mb-1">${book.Title}</h3><p class="text-rikyu mb-4"><i class="fas fa-pen-nib text-xs mr-1"></i> ${book.Author}</p></div><div class="text-right hidden md:block"><span class="block text-xs text-rikyu uppercase">ISBN</span><span class="block font-mono text-sumi">${book.ISBN}</span></div></div><div class="border-t border-stone-100 pt-4 mt-2 flex flex-col sm:flex-row gap-3">
+                <a href="book_detail.html?isbn=${book.ISBN}" class="flex-1 text-center bg-white border border-stone-200 text-rikyu py-2.5 rounded-xl font-bold hover:border-wakatake hover:text-wakatake hover:shadow-md transition"><i class="fas fa-info-circle mr-1"></i> 書籍詳情</a>
+                <button onclick="returnBook('${book.ISBN}')" class="flex-1 bg-white border-2 border-wakatake text-wakatake py-2.5 rounded-xl font-bold hover:bg-wakatake hover:text-white shadow-sm hover:shadow-lg transition"><i class="fas fa-undo mr-1"></i> 歸還書籍</button></div></div></div>`;
             });
             html += `</div>`;
             container.innerHTML = html;
