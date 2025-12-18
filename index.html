@@ -67,12 +67,26 @@
 
         function initCategories() {
             const sel = document.getElementById('category');
-            CONFIG.CATEGORIES.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = c;
-                sel.appendChild(opt);
-            });
+            
+            // 1. 載入 CONFIG 中的分類
+            if (typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
+                CONFIG.CATEGORIES.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    sel.appendChild(opt);
+                });
+            }
+
+            // 2. [新增] 檢查網址參數並預選分類
+            const urlParams = new URLSearchParams(window.location.search);
+            const catParam = urlParams.get('category');
+            if (catParam) {
+                // 嘗試設定下拉選單的值
+                sel.value = catParam;
+                
+                // 如果網址帶的分類不在選單內 (例如 'All' 或無效值)，預設會保持原狀 (全部分類)
+            }
         }
 
         function updateNavUI() {
