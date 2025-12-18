@@ -3,106 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新增書籍</title>
+    <title>書籍詳情 - 雲端圖書館</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script>
-        tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68' } } } }
-    </script>
+    <script>tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68' } } } }</script>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen">
+<body class="bg-white text-gray-800 font-sans min-h-screen">
 
-    <nav class="bg-gray-800 text-white px-6 py-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <span class="font-bold text-xl">新增書籍後台</span>
-            <a href="index.html" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded transition">
-                <i class="fas fa-arrow-left"></i> 返回圖書首頁
+    <nav class="bg-wakatake shadow-lg text-white sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold tracking-wider flex items-center gap-2">
+                <i class="fas fa-arrow-left text-lg"></i> 雲端圖書館
             </a>
+            <div id="navAuthSection"></div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-6 py-8 flex justify-center">
-        <div class="bg-white rounded-lg shadow-md p-8 w-full max-w-3xl">
-            <h3 class="text-2xl font-bold text-wakatake mb-6 border-b pb-2">填寫書籍資料</h3>
-            
-            <form onsubmit="addBook(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="col-span-1"><label class="block font-bold mb-1">ISBN *</label><input name="ISBN" required class="w-full border p-2 rounded"></div>
-                <div class="col-span-1"><label class="block font-bold mb-1">書名 *</label><input name="Title" required class="w-full border p-2 rounded"></div>
-                <div class="col-span-1"><label class="block font-bold mb-1">作者</label><input name="Author" class="w-full border p-2 rounded"></div>
-                <div class="col-span-1"><label class="block font-bold mb-1">出版社</label><input name="Publisher" class="w-full border p-2 rounded"></div>
-                <div class="col-span-1">
-                    <label class="block font-bold mb-1">分類</label>
-                        <select name="Category" id="categoryField" class="w-full border p-2 rounded focus:ring-2 focus:ring-wakatake outline-none">
-                        </select>
-                </div>
-                <div class="col-span-1"><label class="block font-bold mb-1">數量</label><input name="TotalCopies" type="number" value="1" class="w-full border p-2 rounded"></div>
-                <div class="col-span-2"><label class="block font-bold mb-1">封面圖片</label><input name="CoverUrl" class="w-full border p-2 rounded"></div>
-                <div class="col-span-2"><label class="block font-bold mb-1">簡介</label><textarea name="Description" rows="3" class="w-full border p-2 rounded"></textarea></div>
+    <main class="container mx-auto px-6 py-12 max-w-5xl">
+        <div id="loading" class="text-center py-20 text-wakatake text-2xl"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>
+        
+        <div id="content" class="hidden">
+            <nav class="text-sm text-gray-500 mb-8">
+                <a href="index.html" class="hover:text-wakatake">首頁</a> > 
+                <span id="breadcrumbCategory" class="hover:text-wakatake cursor-pointer">分類</span> > 
+                <span id="breadcrumbTitle" class="text-gray-800 font-bold">書名</span>
+            </nav>
 
-                <button type="submit" class="col-span-2 bg-wakatake text-white py-3 rounded-lg font-bold hover:bg-wakatake_dark text-lg shadow">確認新增入庫</button>
-            </form>
+            <div class="flex flex-col md:flex-row gap-12 border-b pb-12">
+                <div class="md:w-1/3 flex-shrink-0">
+                    <div class="border p-4 rounded shadow-sm bg-gray-50 flex items-center justify-center min-h-[400px]">
+                        <img id="bookCover" src="" class="max-w-full max-h-full object-contain shadow-md" alt="封面">
+                    </div>
+                </div>
+
+                <div class="md:w-2/3 flex flex-col">
+                    <h1 id="bookTitle" class="text-3xl font-bold mb-4 text-gray-900 leading-tight">書名載入中</h1>
+                    
+                    <div class="space-y-3 mb-8 text-md border-b pb-6">
+                        <p><span class="text-gray-500 w-24 inline-block">作者：</span><span id="bookAuthor" class="text-blue-600 cursor-pointer">作者名</span></p>
+                        <p><span class="text-gray-500 w-24 inline-block">出版社：</span><span id="bookPublisher" class="text-blue-600 cursor-pointer">出版社名</span></p>
+                        <p><span class="text-gray-500 w-24 inline-block">ISBN：</span><span id="bookISBN">ISBN</span></p>
+                        <p><span class="text-gray-500 w-24 inline-block">書籍分類：</span><span id="bookCategory" class="bg-gray-100 px-2 py-1 rounded">分類</span></p>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg border flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div>
+                            <p class="text-sm text-gray-500">館藏狀態</p>
+                            <p class="text-2xl font-bold text-wakatake">
+                                可用餘額：<span id="availableCopies">0</span> / <span id="totalCopies">0</span>
+                            </p>
+                        </div>
+                        <div id="actionArea" class="w-full md:w-auto min-w-[200px]">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12">
+                <h2 class="text-xl font-bold border-l-4 border-wakatake pl-3 mb-6">內容簡介</h2>
+                <div id="bookDescription" class="text-gray-700 leading-relaxed whitespace-pre-wrap text-lg">
+                    書籍內容簡介載入中...
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        // 安全檢查：只有管理員能進來
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. 權限檢查
-            const user = JSON.parse(localStorage.getItem('libraryUser'));
-            if (!user || (user.Role !== 'Admin' && user.Role !== 'admin')) {
-                alert('權限不足');
+        let currentUser = JSON.parse(localStorage.getItem('libraryUser')) || null;
+        const urlParams = new URLSearchParams(window.location.search);
+        const isbn = urlParams.get('isbn');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateNavUI();
+            if (!isbn) {
+                alert('無效的 ISBN');
                 window.location.href = 'index.html';
-                return; // 加入 return 避免繼續執行
+                return;
             }
-
-            // 2. [修改] 直接在此初始化分類，確保 ID 對應正確
-            const sel = document.getElementById('categoryField');
-            if (sel && typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
-                // 清空可能的預設值，確保乾淨
-                sel.innerHTML = ''; 
-                
-                // 加入一個預設提示選項 (可選)
-                const defaultOpt = document.createElement('option');
-                defaultOpt.value = "";
-                defaultOpt.textContent = "-- 請選擇分類 --";
-                defaultOpt.disabled = true;
-                defaultOpt.selected = true;
-                sel.appendChild(defaultOpt);
-
-                CONFIG.CATEGORIES.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c;
-                    opt.textContent = c;
-                    sel.appendChild(opt);
-                });
-            } else {
-                console.error("無法載入分類：找不到 #categoryField 或 CONFIG 未定義");
-            }
+            await fetchBookDetail();
         });
 
-
-
-        async function addBook(e) {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target).entries());
+        async function fetchBookDetail() {
             try {
-                const res = await fetch(`${CONFIG.API_URL}/admin/books`, {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if(res.ok) {
-                    if(confirm('新增成功！是否留在本頁繼續新增？')) {
-                        e.target.reset();
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                } else {
-                    alert('新增失敗: ' + result.message);
-                }
-            } catch(e) { alert('系統錯誤'); }
+                const res = await fetch(`${CONFIG.API_URL}/books/${isbn}`);
+                if (!res.ok) throw new Error();
+                const book = await res.json();
+
+                // 填入資料
+                document.getElementById('bookTitle').textContent = book.Title;
+                document.getElementById('breadcrumbTitle').textContent = book.Title;
+                document.getElementById('bookAuthor').textContent = book.Author || '未知作者';
+                document.getElementById('bookPublisher').textContent = book.Publisher || '未知出版社';
+                document.getElementById('bookISBN').textContent = book.ISBN;
+                document.getElementById('bookCategory').textContent = book.Category;
+                document.getElementById('breadcrumbCategory').textContent = book.Category;
+                const catElem = document.getElementById('breadcrumbCategory');
+                catElem.textContent = book.Category;
+                // 加入點擊事件，跳轉回首頁並帶上 category 參數
+                catElem.onclick = function() {
+                    window.location.href = `index.html?category=${encodeURIComponent(book.Category)}`;
+                };
+
+                document.getElementById('totalCopies').textContent = book.TotalCopies;
+                document.getElementById('availableCopies').textContent = book.AvailableCopies;
+                document.getElementById('bookCover').src = book.CoverUrl || 'https://via.placeholder.com/400';
+                document.getElementById('bookDescription').textContent = book.Description || '暫無書籍簡介。';
+
+                renderActionButton(book);
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+            } catch (e) {
+                alert('載入失敗');
+                window.location.href = 'index.html';
+            }
         }
+
+        function renderActionButton(book) {
+            const area = document.getElementById('actionArea');
+            const isBorrowed = currentUser && currentUser.BorrowedBooks && currentUser.BorrowedBooks.includes(book.ISBN);
+            const hasStock = book.AvailableCopies > 0;
+            const isAdmin = currentUser && (currentUser.Role === 'Admin' || currentUser.Role === 'admin');
+
+            if (isAdmin) {
+                area.innerHTML = `<a href="edit_book.html?isbn=${book.ISBN}" class="w-full block bg-blue-600 text-white text-center py-3 rounded-lg font-bold hover:bg-blue-700 transition">修改書籍資訊</a>`;
+            } else if (!currentUser) {
+                area.innerHTML = `<button onclick="window.location.href='index.html'" class="w-full bg-gray-500 text-white py-3 rounded-lg font-bold">登入後借閱</button>`;
+            } else if (isBorrowed) {
+                area.innerHTML = `<button onclick="handleReturn()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition">歸還書籍</button>`;
+            } else if (hasStock) {
+                area.innerHTML = `<button onclick="handleBorrow()" class="w-full bg-wakatake text-white py-3 rounded-lg font-bold hover:bg-wakatake_dark transition">立即借閱</button>`;
+            } else {
+                area.innerHTML = `<button disabled class="w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed">已全數借完</button>`;
+            }
+        }
+
+        async function handleBorrow() {
+            if(!confirm('確認借閱這本書嗎？')) return;
+            const res = await fetch(`${CONFIG.API_URL}/books/${isbn}/borrow`, {
+                method: 'POST', body: JSON.stringify({UserID: currentUser.UserID})
+            });
+            if(res.ok) {
+                alert('借閱成功！');
+                currentUser.BorrowedBooks.push(isbn);
+                localStorage.setItem('libraryUser', JSON.stringify(currentUser));
+                location.reload();
+            } else { alert('借閱失敗'); }
+        }
+
+        async function handleReturn() {
+            if(!confirm('確認歸還這本書嗎？')) return;
+            const res = await fetch(`${CONFIG.API_URL}/books/${isbn}/return`, {
+                method: 'POST', body: JSON.stringify({UserID: currentUser.UserID})
+            });
+            if(res.ok) {
+                alert('歸還成功！');
+                currentUser.BorrowedBooks = currentUser.BorrowedBooks.filter(b => b !== isbn);
+                localStorage.setItem('libraryUser', JSON.stringify(currentUser));
+                location.reload();
+            } else { alert('歸還失敗'); }
+        }
+
+        function updateNavUI() {
+            const nav = document.getElementById('navAuthSection');
+            // 從 localStorage 讀取最新使用者狀態
+            const user = JSON.parse(localStorage.getItem('libraryUser'));
+            
+            if (user) {
+                const isAdmin = (user.Role === 'Admin' || user.Role === 'admin');
+                
+                // --- 根據角色決定中間的功能按鈕 ---
+                let actionBtn = '';
+                if (isAdmin) {
+                    // 管理員：新增書籍 + 借閱管理(查看誰借書)
+                    actionBtn = `
+                        <a href="admin.html" class="bg-yellow-500 text-white px-3 py-1 rounded font-bold mr-2 text-sm hover:bg-yellow-600"><i class="fas fa-plus"></i> 新增書籍</a>
+                        <a href="my_books.html" class="bg-blue-500 text-white px-3 py-1 rounded font-bold mr-2 text-sm hover:bg-blue-600"><i class="fas fa-users"></i> 借閱清單</a>
+                    `;
+                } else {
+                    // 一般會員：我的借閱
+                    actionBtn = `
+                        <a href="my_books.html" class="bg-wakatake text-white px-3 py-1 rounded font-bold mr-2 text-sm hover:bg-wakatake_dark"><i class="fas fa-book-reader"></i> 我的借閱 (${user.BorrowedBooks ? user.BorrowedBooks.length : 0})</a>
+                    `;
+                }
+
+                // 組合 HTML
+                nav.innerHTML = `
+                    <span class="text-sm mr-2 hidden md:inline">Hi, ${user.Name}</span> 
+                    ${actionBtn} 
+                    <button onclick="logout()" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">登出</button>
+                `;
+            } else {
+                // 未登入狀態
+                // 注意：index.html 使用 openModal，但其他頁面可能需要跳轉，這裡做一個通用處理
+                // 如果頁面上有 openModal 函式則使用，否則跳轉回 index
+                const loginBtnCheck = typeof openModal === 'function' 
+                    ? `<button onclick="openModal('login')" class="bg-white text-wakatake px-4 py-2 rounded font-bold">登入/註冊</button>`
+                    : `<a href="index.html" class="bg-white text-wakatake px-4 py-2 rounded font-bold">登入/註冊</a>`;
+                    
+                nav.innerHTML = loginBtnCheck;
+            }
+        }
+
+        function logout() { localStorage.removeItem('libraryUser'); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
