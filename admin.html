@@ -54,8 +54,9 @@
                 return; // 加入 return 避免繼續執行
             }
 
-            // 2. [修改] 直接在此初始化分類，確保 ID 對應正確
-            const sel = document.getElementById('categoryField');
+            // 2. [修正] 這裡要抓取 'catField'，因為上方的 HTML 是 id="catField"
+            const sel = document.getElementById('catField'); // <--- 修改了這裡
+            
             if (sel && typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
                 // 清空可能的預設值，確保乾淨
                 sel.innerHTML = ''; 
@@ -75,11 +76,9 @@
                     sel.appendChild(opt);
                 });
             } else {
-                console.error("無法載入分類：找不到 #categoryField 或 CONFIG 未定義");
+                console.error("無法載入分類：找不到 #catField 或 CONFIG 未定義");
             }
         });
-
-
 
         async function addBook(e) {
             e.preventDefault();
