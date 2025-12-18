@@ -35,7 +35,6 @@
                 <div class="col-span-1">
                     <label class="block font-bold mb-1">分類</label>
                     <select name="Category" id="categoryField" class="w-full border p-2 rounded focus:ring-2 focus:ring-wakatake outline-none">
-                        <option>載入中...</option>
                     </select>
                 </div>
 
@@ -59,21 +58,14 @@
             }
 
             // 2. 載入分類
-            // 確保這裡抓取的 ID 與上方的 HTML ID 一致 (都是 categoryField)
             const sel = document.getElementById('categoryField');
             
             if (sel && typeof CONFIG !== 'undefined' && CONFIG.CATEGORIES) {
-                sel.innerHTML = ''; // 清空目前的選項
+                // 清空選項 (雖然 HTML 已經清空了，但保持這行是好習慣)
+                sel.innerHTML = ''; 
                 
-                // 加入預設提示
-                const defaultOpt = document.createElement('option');
-                defaultOpt.value = "";
-                defaultOpt.textContent = "-- 請選擇分類 --";
-                defaultOpt.disabled = true;
-                defaultOpt.selected = true;
-                sel.appendChild(defaultOpt);
-
-                // 加入 config.js 中的分類
+                // [修改重點] 移除原本的「-- 請選擇分類 --」預設選項程式碼
+                // 直接載入分類，這樣預設就會選中第一個分類，行為與 edit_book.html 一致
                 CONFIG.CATEGORIES.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c;
@@ -82,7 +74,6 @@
                 });
             } else {
                 console.error("錯誤：找不到 #categoryField 元素，或 CONFIG 未載入");
-                if(sel) sel.innerHTML = '<option>載入失敗</option>';
             }
         });
 
@@ -98,8 +89,8 @@
                 if(res.ok) {
                     if(confirm('新增成功！是否留在本頁繼續新增？')) {
                         e.target.reset();
-                        // 重置分類選單
-                        document.getElementById('categoryField').selectedIndex = 0;
+                        // 雖然 reset 會重置表單，但因為我們沒有預設 placeholder，
+                        // 分類選單會自動停留在第一個選項，無需額外設定 selectedIndex
                     } else {
                         window.location.href = 'index.html';
                     }
