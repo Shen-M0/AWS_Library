@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>借閱管理 - 雲端圖書館</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>tailwind.config = { theme: { extend: { colors: { wakatake: '#5DAC81', wakatake_dark: '#488c68' } } } }</script>
+</head>
+<body class="bg-gray-50 text-gray-700 font-sans min-h-screen flex flex-col">
+
+    <nav class="bg-wakatake shadow-lg text-white sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold tracking-wider"><i class="fas fa-book-open"></i> 雲端圖書館</a>
+            <div id="navAuthSection"></div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-10 flex-grow">
+        <h1 id="pageTitle" class="text-3xl font-bold text-wakatake mb-8 border-b pb-4">借閱紀錄</h1>
+        
+        <div id="loading" class="text-center py-20 text-gray-500">
+            <i class="fas fa-spinner fa-spin text-4xl mb-4"></i><br>正在讀取資料...
+        </div>
+
+        <div id="contentArea" class="hidden"></div>
+    </main>
+
+    <script>
+        // 1. 初始化使用者與權限
+        let currentUser = JSON.parse(localStorage.getItem('libraryUser')) || null;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!currentUser) {
+                alert('請先登入');
+                window.location.href = 'index.html';
+                return;
+            }
+            updateNavUI();
+            loadData();
+        });
+
+        // 2. 更新導覽列 (與 index.html 保持一致，但加入目前頁面的邏輯)
+        function updateNavUI() {
+            const nav = document.getElementById('navAuthSection');
+            const isAdmin = (currentUser.Role === 'Admin' || currentUser.Role === 'admin');
+            
+            let menuHtml = `<span class="mr-4">Hi, ${currentUser.Name}</span>`;
+            
+            // 這裡顯示「返回首頁」按鈕，而不是功能按鈕，避免重複
+            menuHtml += `<a href="index.html" class="bg-white text-wakatake px-4 py-2 rounded font-bold mr-2 hover:bg-gray-100">返回首頁</a>`;
+            menuHtml += `<button onclick="logout()" class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700">登出</button>`;
+            
+            nav.innerHTML = menuHtml;
+        }
+
+        function logout() { localStorage.removeItem('libraryUser'); window.location.href = 'index.html'; }
+
+        // 3. 核心邏輯：根據角色載入不同資料
+        async function loadData() {
+            try {
+                // 抓取所有書籍資料 (目前系統規模小，直接抓全量即可)
+                const res = await fetch(`${CONFIG.API_URL}/books`);
+                const allBooks = await res.json();
+                
+                const isAdmin = (currentUser.Role === 'Admin' || currentUser.Role === 'admin');
+                const container = document.getElementById('contentArea');
+                
+                if (isAdmin) {
+                    // --- 管理員視角：顯示所有被借出的書 ---
+                    document.getElementById('pageTitle').textContent = "館藏借閱清單 (管理員)";
+                    renderAdminView(container, allBooks);
+                } else {
+                    // --- 會員視角：顯示我借的書 ---
+                    document.getElementById('pageTitle').textContent = "我的借閱書架";
+                    renderMemberView(container, allBooks);
+                }
+
+                document.getElementById('loading').classList.add('hidden');
+                container.classList.remove('hidden');
+
+            } catch (e) {
+                console.error(e);
+                alert('資料讀取失敗');
+            }
+        }
+
+        // 4. 渲染函式 - 管理員
+        function renderAdminView(container, books) {
+            // 篩選出有人借閱的書籍 (Borrowers 陣列不為空)
+            const borrowedBooks = books.filter(b => b.Borrowers && b.Borrowers.length > 0);
+
+            if (borrowedBooks.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 text-xl">目前沒有任何書籍被借出。</div>`;
+                return;
+            }
+
+            let html = `
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full leading-normal">
+                        <thead>
+                            <tr class="bg-gray-800 text-white">
+                                <th class="px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-semibold">書籍資訊</th>
+                                <th class="px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-semibold">ISBN</th>
+                                <th class="px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-semibold">目前借閱者 (帳號)</th>
+                                <th class="px-5 py-3 border-b border-gray-200 text-center text-sm uppercase font-semibold">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            borrowedBooks.forEach(book => {
+                // 將借閱者陣列轉為標籤顯示
+                const borrowersHtml = book.Borrowers.map(uid => 
+                    `<span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold mr-1 mb-1"><i class="fas fa-user"></i> ${uid}</span>`
+                ).join('');
+
+                html += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-200">
+                        <td class="px-5 py-4 text-sm">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 w-10 h-10">
+                                    <img class="w-full h-full rounded object-cover" src="${book.CoverUrl}" alt="" />
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-gray-900 whitespace-no-wrap font-bold">${book.Title}</p>
+                                    <p class="text-gray-500 whitespace-no-wrap text-xs">${book.Author}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 text-sm text-gray-500">${book.ISBN}</td>
+                        <td class="px-5 py-4 text-sm">${borrowersHtml}</td>
+                        <td class="px-5 py-4 text-center">
+                            <a href="book_detail.html?isbn=${book.ISBN}" class="text-wakatake hover:text-wakatake_dark font-bold">查看詳情</a>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+
+        // 5. 渲染函式 - 會員
+        function renderMemberView(container, books) {
+            // 篩選出 ISBN 在使用者 BorrowedBooks 清單內的書
+            const myIsbns = currentUser.BorrowedBooks || [];
+            const myBooks = books.filter(b => myIsbns.includes(b.ISBN));
+
+            if (myBooks.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10">
+                        <p class="text-gray-500 text-xl mb-4">您目前沒有借閱任何書籍。</p>
+                        <a href="index.html" class="bg-wakatake text-white px-6 py-2 rounded shadow hover:bg-wakatake_dark">去借書</a>
+                    </div>`;
+                return;
+            }
+
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+            
+            myBooks.forEach(book => {
+                html += `
+                    <div class="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row gap-6 relative overflow-hidden group">
+                        <div class="w-full md:w-1/3 flex-shrink-0">
+                            <img src="${book.CoverUrl}" class="w-full h-48 object-contain rounded bg-gray-100">
+                        </div>
+                        <div class="flex-1 flex flex-col">
+                            <h3 class="font-bold text-xl text-gray-800 mb-2">${book.Title}</h3>
+                            <p class="text-sm text-gray-500 mb-4">作者：${book.Author}</p>
+                            <p class="text-xs bg-gray-100 p-2 rounded mb-auto">ISBN: ${book.ISBN}</p>
+                            
+                            <div class="mt-4 pt-4 border-t flex gap-2">
+                                <a href="book_detail.html?isbn=${book.ISBN}" class="flex-1 text-center border border-gray-300 py-2 rounded text-gray-600 hover:bg-gray-50">書籍詳情</a>
+                                <button onclick="returnBook('${book.ISBN}')" class="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600 shadow">歸還書籍</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // 6. 會員還書功能 (複製自 index.html)
+        async function returnBook(isbn) {
+            if(!confirm('確認要歸還這本書嗎?')) return;
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/books/${isbn}/return`, {
+                    method: 'POST', body: JSON.stringify({UserID: currentUser.UserID})
+                });
+                if(res.ok) {
+                    alert('歸還成功');
+                    // 更新本地緩存
+                    currentUser.BorrowedBooks = currentUser.BorrowedBooks.filter(b => b !== isbn);
+                    localStorage.setItem('libraryUser', JSON.stringify(currentUser));
+                    // 重新載入頁面資料
+                    loadData();
+                } else { alert('歸還失敗'); }
+            } catch(e) { alert('系統錯誤'); }
+        }
+    </script>
+</body>
+</html>
