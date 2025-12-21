@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>發生錯誤 - 雲端圖書館</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = { 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        wakatake: '#5DAC81',       // 若竹色
+                        wakatake_dark: '#488c68',  
+                        chitose: '#316745',        // 千歲綠
+                        sumi: '#303133',           // 墨色
+                        rikyu: '#888E7E',          // 利休鼠
+                        gofun: '#fffffc',          // 胡粉
+                    } 
+                } 
+            } 
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f7f6f2;
+            background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+            color: #303133;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col">
+
+    <nav class="bg-chitose shadow-lg sticky top-0 z-50 border-b border-white/10">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold tracking-wider text-white flex items-center gap-2 hover:text-white/80 transition shadow-black drop-shadow-md">
+                <i class="fas fa-book-open"></i> 雲端圖書館
+            </a>
+            <div id="navAuthSection" class="flex items-center gap-3"></div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-12 flex-grow flex items-center justify-center">
+        <div class="bg-gofun w-full max-w-lg rounded-2xl shadow-xl border border-stone-200 p-8 md:p-12 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-stone-300 to-rikyu opacity-50"></div>
+            
+            <div class="mb-6">
+                <div class="inline-flex items-center justify-center w-24 h-24 bg-stone-100 rounded-full text-rikyu mb-4 shadow-inner">
+                    <i class="fas fa-exclamation-triangle text-4xl opacity-80"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-sumi mb-2">發生了一點狀況</h1>
+                <p class="text-rikyu font-medium tracking-wide">Error / エラー</p>
+            </div>
+
+            <div class="bg-stone-50 rounded-xl p-6 border border-stone-100 mb-8">
+                <p id="errorMessage" class="text-sumi text-lg font-medium leading-relaxed">
+                    抱歉，系統似乎遇到了一些問題，或者您要找的頁面不存在。
+                </p>
+                <p id="errorCode" class="text-sm text-rikyu mt-2 font-mono hidden">Code: 404</p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="window.history.back()" class="w-full bg-white border border-stone-300 text-rikyu hover:text-sumi hover:border-stone-400 py-3 rounded-xl font-bold transition shadow-sm hover:shadow-md">
+                    <i class="fas fa-arrow-left mr-2"></i> 返回上一頁
+                </button>
+                <a href="index.html" class="w-full block bg-wakatake text-white py-3 rounded-xl font-bold hover:bg-wakatake_dark shadow-lg hover:shadow-xl transition transform active:scale-[0.98]">
+                    <i class="fas fa-home mr-2"></i> 回到圖書館首頁
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-sumi text-[#eae8e1] py-8 text-center mt-auto border-t-4 border-wakatake">
+        <p class="font-medium tracking-wider">&copy; 2025 Cloud Library System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const BTN_STYLE = "bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition text-sm font-bold flex items-center gap-2 border border-white/20 backdrop-blur-sm text-white shadow-sm hover:shadow-md";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNavUI();
+            parseErrorParams();
+        });
+
+        // 解析網址參數來顯示自定義錯誤 (例如: error.html?msg=找不到該書籍&code=404)
+        function parseErrorParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const msg = urlParams.get('msg');
+            const code = urlParams.get('code');
+
+            if (msg) {
+                document.getElementById('errorMessage').textContent = decodeURIComponent(msg);
+            }
+            if (code) {
+                const codeEl = document.getElementById('errorCode');
+                codeEl.textContent = `Error Code: ${code}`;
+                codeEl.classList.remove('hidden');
+            }
+        }
+
+        // 維持導覽列登入狀態顯示
+        function updateNavUI() {
+            const nav = document.getElementById('navAuthSection');
+            const user = JSON.parse(localStorage.getItem('libraryUser'));
+            
+            if (user) {
+                const isAdmin = (user.Role === 'Admin' || user.Role === 'admin');
+                let actionBtn = '';
+                if (isAdmin) {
+                    actionBtn = `
+                        <a href="admin.html" class="${BTN_STYLE}"><i class="fas fa-plus"></i> <span class="hidden md:inline">新增</span></a>
+                        <a href="my_books.html" class="${BTN_STYLE}"><i class="fas fa-users-cog"></i> <span class="hidden md:inline">管理</span></a>
+                    `;
+                } else {
+                    actionBtn = `
+                        <a href="my_books.html" class="${BTN_STYLE}"><i class="fas fa-book-reader"></i> 借閱 (${user.BorrowedBooks ? user.BorrowedBooks.length : 0})</a>
+                    `;
+                }
+                nav.innerHTML = `
+                    <span class="text-sm font-medium text-white/90 hidden md:inline tracking-wide">Hi, ${user.Name}</span> 
+                    ${actionBtn} 
+                    <button onclick="logout()" class="${BTN_STYLE}"><i class="fas fa-sign-out-alt"></i> 登出</button>
+                `;
+            } else {
+                nav.innerHTML = `<a href="index.html" class="${BTN_STYLE}">登入 / 註冊</a>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('libraryUser');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
